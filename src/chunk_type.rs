@@ -1,10 +1,12 @@
 use crate::Error;
 
-struct ChunkType {}
+struct ChunkType {
+    bytes: [u8; 4],
+}
 
 impl ChunkType {
     fn bytes(&self) -> [u8; 4] {
-        todo!()
+        self.bytes
     }
 }
 
@@ -12,7 +14,7 @@ impl TryFrom<[u8; 4]> for ChunkType {
     type Error = Error;
 
     fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
-        todo!()
+        Ok(Self { bytes: value })
     }
 }
 
