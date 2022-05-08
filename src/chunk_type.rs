@@ -97,6 +97,12 @@ impl FromStr for ChunkType {
     }
 }
 
+impl Display for ChunkType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
 /*
     our custom error type must implement std::error::Error (and therefore Display) to be returned inside an Err() variant
 */
@@ -203,5 +209,12 @@ mod tests {
         let chunk = ChunkType::from_str("Ru1t");
 
         assert!(chunk.is_err());
+    }
+
+    #[test]
+    pub fn test_chunk_type_string() {
+        let chunk = ChunkType::from_str("RuSt").unwrap();
+
+        assert_eq!(&chunk.to_string(), "RuSt");
     }
 }
