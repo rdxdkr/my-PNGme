@@ -77,7 +77,7 @@ impl FromStr for ChunkType {
         let mut bytes = [0u8; 4];
 
         for (i, b) in s.bytes().enumerate() {
-            bytes[i] = b;
+                bytes[i] = b;
         }
 
         Ok(Self { bytes })
@@ -165,5 +165,16 @@ mod tests {
         let chunk = ChunkType::from_str("RuSt").unwrap();
 
         assert!(chunk.is_valid());
+    }
+
+    #[test]
+    pub fn test_invalid_chunk_is_valid() {
+        let chunk = ChunkType::from_str("Rust").unwrap();
+
+        assert!(!chunk.is_valid());
+
+        let chunk = ChunkType::from_str("Ru1t");
+
+        assert!(chunk.is_err());
     }
 }
