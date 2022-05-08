@@ -1,4 +1,4 @@
-use std::{error, fmt::Display, str::FromStr};
+use std::{error, fmt::Display, str, str::FromStr};
 
 use crate::Error;
 
@@ -99,7 +99,12 @@ impl FromStr for ChunkType {
 
 impl Display for ChunkType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        /*
+            ASCII values can be safely cast to UTF-8 chars
+        */
+        //write!(f, "{}{}{}{}", self.bytes[0] as char, self.bytes[1] as char, self.bytes[2] as char, self.bytes[3] as char)
+
+        write!(f, "{}", str::from_utf8(&self.bytes).unwrap())
     }
 }
 
