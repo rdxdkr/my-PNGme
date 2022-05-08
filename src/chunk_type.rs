@@ -30,6 +30,10 @@ impl ChunkType {
         Self::test_fifth_bit_to_0(self.bytes()[1])
     }
 
+    fn is_reserved_bit_valid(&self) -> bool {
+        todo!()
+    }
+
     fn test_fifth_bit_to_0(byte: u8) -> bool {
         byte & 0b00100000 == 0
     }
@@ -103,5 +107,12 @@ mod tests {
         let chunk = ChunkType::from_str("RuSt").unwrap();
 
         assert!(!chunk.is_public());
+    }
+
+    #[test]
+    pub fn test_chunk_type_is_reserved_bit_valid() {
+        let chunk = ChunkType::from_str("RuSt").unwrap();
+
+        assert!(chunk.is_reserved_bit_valid());
     }
 }
