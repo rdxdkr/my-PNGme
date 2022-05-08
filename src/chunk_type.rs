@@ -18,7 +18,7 @@ impl ChunkType {
 
             the chunk is critical if the bit in position 5 (value 32) of the first byte is 0
         */
-        Self::test_fifth_bit_to_0(self.bytes()[0])
+        Self::test_fifth_bit_to_0(self.bytes[0])
     }
 
     fn is_public(&self) -> bool {
@@ -27,7 +27,7 @@ impl ChunkType {
 
             the chunk is public if the bit in position 5 (value 32) of the second byte is 0
         */
-        Self::test_fifth_bit_to_0(self.bytes()[1])
+        Self::test_fifth_bit_to_0(self.bytes[1])
     }
 
     fn is_reserved_bit_valid(&self) -> bool {
@@ -36,7 +36,7 @@ impl ChunkType {
 
             the chunk has a valid reserved bit if the bit in position 5 (value 32) of the third byte is 0
         */
-        Self::test_fifth_bit_to_0(self.bytes()[2])
+        Self::test_fifth_bit_to_0(self.bytes[2])
     }
 
     fn test_fifth_bit_to_0(byte: u8) -> bool {
