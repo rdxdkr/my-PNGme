@@ -120,4 +120,11 @@ mod tests {
 
         assert!(chunk.is_reserved_bit_valid());
     }
+
+    #[test]
+    pub fn test_chunk_type_is_reserved_bit_invalid() {
+        let chunk = ChunkType::from_str("Rust").unwrap();
+        
+        assert!(!chunk.is_reserved_bit_valid());
+    }
 }
