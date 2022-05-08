@@ -143,4 +143,11 @@ mod tests {
 
         assert!(chunk.is_safe_to_copy());
     }
+
+    #[test]
+    pub fn test_chunk_type_is_unsafe_to_copy() {
+        let chunk = ChunkType::from_str("RuST").unwrap();
+        
+        assert!(!chunk.is_safe_to_copy());
+    }
 }
