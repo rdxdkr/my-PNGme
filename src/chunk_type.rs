@@ -31,7 +31,12 @@ impl ChunkType {
     }
 
     fn is_reserved_bit_valid(&self) -> bool {
-        todo!()
+        /*
+            from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-naming-conventions
+
+            the chunk has a valid reserved bit if the bit in position 5 (value 32) of the third byte is 0
+        */
+        Self::test_fifth_bit_to_0(self.bytes()[2])
     }
 
     fn test_fifth_bit_to_0(byte: u8) -> bool {
