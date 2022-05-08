@@ -49,7 +49,12 @@ impl ChunkType {
     }
 
     fn is_valid(&self) -> bool {
-        todo!()
+        /*
+            from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-layout
+
+            the chunk is valid if all of its bytes are ASCII uppercase or lowercase letters
+        */
+        self.bytes.iter().all(|b| b.is_ascii_uppercase() || b.is_ascii_lowercase())
     }
 
     fn test_fifth_bit_to_0(byte: u8) -> bool {
