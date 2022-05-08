@@ -22,7 +22,12 @@ impl ChunkType {
     }
 
     fn is_public(&self) -> bool {
-        todo!()
+        /*
+            from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-naming-conventions
+
+            the chunk is public if the bit in position 5 (value 32) of the second byte is 0
+        */
+        self.bytes()[1] & 0b00100000 == 0
     }
 }
 
