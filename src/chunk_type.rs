@@ -70,4 +70,11 @@ mod tests {
 
         assert!(chunk.is_critical());
     }
+
+    #[test]
+    pub fn test_chunk_type_is_not_critical() {
+        let chunk = ChunkType::from_str("ruSt").unwrap();
+
+        assert!(!chunk.is_critical());
+    }
 }
