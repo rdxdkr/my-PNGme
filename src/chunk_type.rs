@@ -39,6 +39,10 @@ impl ChunkType {
         Self::test_fifth_bit_to_0(self.bytes[2])
     }
 
+    fn is_safe_to_copy(&self) -> bool {
+        todo!()
+    }
+
     fn test_fifth_bit_to_0(byte: u8) -> bool {
         byte & 0b00100000 == 0
     }
@@ -124,7 +128,14 @@ mod tests {
     #[test]
     pub fn test_chunk_type_is_reserved_bit_invalid() {
         let chunk = ChunkType::from_str("Rust").unwrap();
-        
+
         assert!(!chunk.is_reserved_bit_valid());
+    }
+
+    #[test]
+    pub fn test_chunk_type_is_safe_to_copy() {
+        let chunk = ChunkType::from_str("RuSt").unwrap();
+
+        assert!(chunk.is_safe_to_copy());
     }
 }
