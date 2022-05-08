@@ -25,7 +25,13 @@ impl FromStr for ChunkType {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
+        let mut bytes = [0u8; 4];
+
+        for (i, b) in s.bytes().enumerate() {
+            bytes[i] = b;
+        }
+
+        Ok(Self { bytes })
     }
 }
 
@@ -45,7 +51,7 @@ mod tests {
     pub fn test_chunk_type_from_str() {
         let expected = ChunkType::try_from([82, 117, 83, 116]).unwrap();
         let actual = ChunkType::from_str("RuSt").unwrap();
-        
+
         assert_eq!(expected, actual);
     }
 }
