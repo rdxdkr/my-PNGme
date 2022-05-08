@@ -40,7 +40,12 @@ impl ChunkType {
     }
 
     fn is_safe_to_copy(&self) -> bool {
-        todo!()
+        /*
+            from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-naming-conventions
+
+            the chunk is safe to copy if the bit in position 5 (value 32) of the fourth byte is 1
+        */
+        !Self::test_fifth_bit_to_0(self.bytes[3])
     }
 
     fn test_fifth_bit_to_0(byte: u8) -> bool {
