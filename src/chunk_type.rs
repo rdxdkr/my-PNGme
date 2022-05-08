@@ -13,7 +13,12 @@ impl ChunkType {
     }
 
     fn is_critical(&self) -> bool {
-        todo!()
+        /*
+            from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-naming-conventions
+
+            the chunk is critical if the bit in position 5 (value 32) of the first byte is 0
+        */
+        self.bytes()[0] & 0b00100000 == 0
     }
 }
 
