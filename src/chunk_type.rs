@@ -11,6 +11,10 @@ impl ChunkType {
     fn bytes(&self) -> [u8; 4] {
         self.bytes
     }
+
+    fn is_critical(&self) -> bool {
+        todo!()
+    }
 }
 
 impl TryFrom<[u8; 4]> for ChunkType {
@@ -53,5 +57,12 @@ mod tests {
         let actual = ChunkType::from_str("RuSt").unwrap();
 
         assert_eq!(expected, actual);
+    }
+
+    #[test]
+    pub fn test_chunk_type_is_critical() {
+        let chunk = ChunkType::from_str("RuSt").unwrap();
+
+        assert!(chunk.is_critical());
     }
 }
