@@ -93,4 +93,11 @@ mod tests {
 
         assert!(chunk.is_public());
     }
+
+    #[test]
+    pub fn test_chunk_type_is_not_public() {
+        let chunk = ChunkType::from_str("RuSt").unwrap();
+        
+        assert!(!chunk.is_public());
+    }
 }
