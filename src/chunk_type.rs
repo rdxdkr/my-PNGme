@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{error, fmt::Display, str::FromStr};
 
 use crate::Error;
 
@@ -6,6 +6,9 @@ use crate::Error;
 struct ChunkType {
     bytes: [u8; 4],
 }
+
+#[derive(Debug)]
+struct InvalidChunkError;
 
 impl ChunkType {
     fn bytes(&self) -> [u8; 4] {
@@ -52,9 +55,12 @@ impl ChunkType {
         /*
             from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-layout
 
-            the chunk is valid if all of its bytes are ASCII uppercase or lowercase letters
+            the chunk is valid if all of its bytes are ASCII uppercase or lowercase letters, and also if the reserved bit is valid
         */
-        self.bytes.iter().all(|b| b.is_ascii_uppercase() || b.is_ascii_lowercase())
+        self.bytes
+            .iter()
+            .all(|b| b.is_ascii_uppercase() || b.is_ascii_lowercase())
+            && self.is_reserved_bit_valid()
     }
 
     fn test_fifth_bit_to_0(byte: u8) -> bool {
@@ -77,10 +83,31 @@ impl FromStr for ChunkType {
         let mut bytes = [0u8; 4];
 
         for (i, b) in s.bytes().enumerate() {
+            if b.is_ascii_uppercase() || b.is_ascii_lowercase() {
                 bytes[i] = b;
+            } else {
+                /*
+                    the Box is necessary because the Error alias in main.rs was defined to accept trait objects
+                */
+                return Err(Box::new(InvalidChunkError));
+            }
         }
 
         Ok(Self { bytes })
+    }
+}
+
+/*
+    our custom error type must implement std::error::Error (and therefore Display) to be returned inside an Err() variant
+*/
+impl error::Error for InvalidChunkError {}
+
+impl Display for InvalidChunkError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "A valid chunk contains only ASCII uppercase or lowercase letters"
+        )
     }
 }
 
