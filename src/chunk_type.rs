@@ -18,7 +18,7 @@ impl ChunkType {
 
             the chunk is critical if the bit in position 5 (value 32) of the first byte is 0
         */
-        self.bytes()[0] & 0b00100000 == 0
+        Self::test_fifth_bit_to_0(self.bytes()[0])
     }
 
     fn is_public(&self) -> bool {
@@ -27,7 +27,11 @@ impl ChunkType {
 
             the chunk is public if the bit in position 5 (value 32) of the second byte is 0
         */
-        self.bytes()[1] & 0b00100000 == 0
+        Self::test_fifth_bit_to_0(self.bytes()[1])
+    }
+
+    fn test_fifth_bit_to_0(byte: u8) -> bool {
+        byte & 0b00100000 == 0
     }
 }
 
@@ -97,7 +101,7 @@ mod tests {
     #[test]
     pub fn test_chunk_type_is_not_public() {
         let chunk = ChunkType::from_str("RuSt").unwrap();
-        
+
         assert!(!chunk.is_public());
     }
 }
