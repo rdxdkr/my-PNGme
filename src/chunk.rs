@@ -1,6 +1,6 @@
 use crc::{Crc, CRC_32_ISO_HDLC};
 
-use crate::chunk_type::ChunkType;
+use crate::{chunk_type::ChunkType, Error};
 
 struct Chunk {
     chunk_type: ChunkType,
@@ -49,6 +49,14 @@ impl Chunk {
     }
 }
 
+impl TryFrom<&[u8]> for Chunk {
+    type Error = Error;
+
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -65,5 +73,29 @@ mod tests {
 
         assert_eq!(chunk.length(), 42);
         assert_eq!(chunk.crc(), 2882656334);
+    }
+
+    #[test]
+    fn test_chunk_length() {
+        let chunk = testing_chunk();
+        assert_eq!(chunk.length(), 42);
+    }
+
+    fn testing_chunk() -> Chunk {
+        let data_length: u32 = 42;
+        let chunk_type = "RuSt".as_bytes();
+        let message_bytes = "This is where your secret message will be!".as_bytes();
+        let crc: u32 = 2882656334;
+
+        let chunk_data: Vec<u8> = data_length
+            .to_be_bytes()
+            .iter()
+            .chain(chunk_type.iter())
+            .chain(message_bytes.iter())
+            .chain(crc.to_be_bytes().iter())
+            .copied()
+            .collect();
+
+        Chunk::try_from(chunk_data.as_ref()).unwrap()
     }
 }
