@@ -1,5 +1,6 @@
 use std::{error, result};
 
+mod chunk;
 mod chunk_type;
 
 pub type Error = Box<dyn error::Error>;

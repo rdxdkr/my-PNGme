@@ -8,4 +8,4 @@ Since many unit tests are already provided, I've decided to follow a proper Test
 
 **Chapter 1: Done**
 
-Chapter 2: Not yet started
+Chapter 2: Started
