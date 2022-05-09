@@ -3,7 +3,7 @@ use std::{error, fmt::Display, str, str::FromStr};
 use crate::Error;
 
 #[derive(Debug, PartialEq)]
-struct ChunkType {
+pub struct ChunkType {
     bytes: [u8; 4],
 }
 
