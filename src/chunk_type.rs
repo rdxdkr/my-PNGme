@@ -11,7 +11,7 @@ pub struct ChunkType {
 struct InvalidChunkError;
 
 impl ChunkType {
-    fn bytes(&self) -> [u8; 4] {
+    pub fn bytes(&self) -> [u8; 4] {
         self.bytes
     }
 
