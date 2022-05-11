@@ -19,35 +19,7 @@ struct InvalidCrcError;
 
 impl Chunk {
     fn new(chunk_type: ChunkType, data: Vec<u8>) -> Self {
-        /*
-            from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-layout
-
-            the crc is calculated on the bytes of the chunk type and data, and it needs to be 4 bytes long
-
-            I had to try out pretty much all of the 32 bit algorithms available in the crc crate, until I found the one that works with the provided test
-        */
-        let crc = Crc::<u32>::new(&CRC_32_ISO_HDLC);
-
-        // imperative way by manually iterating over the two sequences
-        /*let mut bytes = Vec::<u8>::new();
-
-        for b in self.chunk_type.bytes() {
-            bytes.push(b);
-        }
-
-        for b in &self.data {
-            bytes.push(*b);
-        }*/
-
-        // functional way by chaining the two iterators together and collecting them in a new Vec at the end
-        let crc = crc.checksum(
-            &chunk_type
-                .bytes()
-                .iter()
-                .cloned()
-                .chain(data.iter().cloned())
-                .collect::<Vec<u8>>(),
-        );
+        let crc = Self::calculate_crc(&chunk_type, &data);
 
         Self {
             length: data.len() as u32,
@@ -72,6 +44,38 @@ impl Chunk {
     fn data_as_string(&self) -> Result<String> {
         Ok(str::from_utf8(&self.chunk_data).unwrap().to_string())
     }
+
+    fn calculate_crc(chunk_type: &ChunkType, data: &Vec<u8>) -> u32 {
+        /*
+            from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-layout
+
+            the crc is calculated on the bytes of the chunk type and data, and it needs to be 4 bytes long
+
+            I had to try out pretty much all of the 32 bit algorithms available in the crc crate, until I found the one that works with the provided test
+        */
+        let crc = Crc::<u32>::new(&CRC_32_ISO_HDLC);
+
+        // imperative way by manually iterating over the two sequences
+        /*let mut bytes = Vec::<u8>::new();
+
+        for b in self.chunk_type.bytes() {
+            bytes.push(b);
+        }
+
+        for b in &self.data {
+            bytes.push(*b);
+        }*/
+
+        // functional way by chaining the two iterators together and collecting them in a new Vec at the end
+        crc.checksum(
+            &chunk_type
+                .bytes()
+                .iter()
+                .cloned()
+                .chain(data.iter().cloned())
+                .collect::<Vec<u8>>(),
+        )
+    }
 }
 
 impl TryFrom<&[u8]> for Chunk {
@@ -88,23 +92,16 @@ impl TryFrom<&[u8]> for Chunk {
 
         // the length and crc are encoded as big endian bytes, so they must be read like this
         let length = u32::from_be_bytes(value[..4].try_into().unwrap());
-        let chunk_type_raw_str = str::from_utf8(&value[4..8]).unwrap();
-        let chunk_type = ChunkType::from_str(chunk_type_raw_str).unwrap();
+        let chunk_type = ChunkType::from_str(str::from_utf8(&value[4..8]).unwrap()).unwrap();
 
         let data_end_index = 8 + length as usize;
-        let chunk_data = str::from_utf8(&value[8..data_end_index]).unwrap();
-        let chunk_data = chunk_data.as_bytes().to_vec();
-        let input_crc = u32::from_be_bytes(value[data_end_index..].try_into().unwrap());
+        let chunk_data = str::from_utf8(&value[8..data_end_index])
+            .unwrap()
+            .as_bytes()
+            .to_vec();
 
-        let crc = Crc::<u32>::new(&CRC_32_ISO_HDLC);
-        let crc = crc.checksum(
-            &chunk_type
-                .bytes()
-                .iter()
-                .cloned()
-                .chain(chunk_data.iter().cloned())
-                .collect::<Vec<u8>>(),
-        );
+        let input_crc = u32::from_be_bytes(value[data_end_index..].try_into().unwrap());
+        let crc = Self::calculate_crc(&chunk_type, &chunk_data);
 
         if crc != input_crc {
             return Err(Box::new(InvalidCrcError));
