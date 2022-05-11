@@ -4,20 +4,14 @@ use std::str::{self, FromStr};
 use crate::{chunk_type::ChunkType, Error, Result};
 
 struct Chunk {
+    length: u32,
     chunk_type: ChunkType,
-    data: Vec<u8>,
+    chunk_data: Vec<u8>,
+    crc: u32,
 }
 
 impl Chunk {
     fn new(chunk_type: ChunkType, data: Vec<u8>) -> Self {
-        Self { chunk_type, data }
-    }
-
-    fn length(&self) -> u32 {
-        self.data.len() as u32
-    }
-
-    fn crc(&self) -> u32 {
         /*
             from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-layout
 
@@ -27,9 +21,7 @@ impl Chunk {
         */
         let crc = Crc::<u32>::new(&CRC_32_ISO_HDLC);
 
-        /*
-            imperative way by manually iterating over the two sequences
-        */
+        // imperative way by manually iterating over the two sequences
         /*let mut bytes = Vec::<u8>::new();
 
         for b in self.chunk_type.bytes() {
@@ -40,13 +32,30 @@ impl Chunk {
             bytes.push(*b);
         }*/
 
-        /*
-            functional way by chaining the two iterators together and collecting them in a new Vec at the end
-        */
-        let chunk = self.chunk_type.bytes();
-        let data = self.data.iter().cloned();
+        // functional way by chaining the two iterators together and collecting them in a new Vec at the end
+        let crc = crc.checksum(
+            &chunk_type
+                .bytes()
+                .iter()
+                .cloned()
+                .chain(data.iter().cloned())
+                .collect::<Vec<u8>>(),
+        );
 
-        crc.checksum(&(chunk.iter().cloned().chain(data).collect::<Vec<u8>>()))
+        Self {
+            length: data.len() as u32,
+            chunk_type,
+            chunk_data: data,
+            crc,
+        }
+    }
+
+    fn length(&self) -> u32 {
+        self.length
+    }
+
+    fn crc(&self) -> u32 {
+        self.crc
     }
 
     fn chunk_type(&self) -> &ChunkType {
@@ -60,21 +69,24 @@ impl TryFrom<&[u8]> for Chunk {
     fn try_from(value: &[u8]) -> Result<Self> {
         /*
             a slice of u8 (byte) interpreted as a png chunk is structured as follows:
-            - first 4 bytes: data length (n)
+            - first 4 bytes: length (n)
             - next 4 bytes: chunk type
-            - next n bytes: message
+            - next n bytes: chunk data
             - last 4 bytes: crc
         */
 
-        // the length is encoded as big endian bytes, so it must be read like this
-        let data_length = u32::from_be_bytes(value[..4].try_into().unwrap());
+        // the length and crc are encoded as big endian bytes, so they must be read like this
+        let length = u32::from_be_bytes(value[..4].try_into().unwrap());
         let chunk_type_raw_str = str::from_utf8(&value[4..8]).unwrap();
-        let message = str::from_utf8(&value[8..8 + data_length as usize]).unwrap();
+        let data_end_index = 8 + length as usize;
+        let chunk_data = str::from_utf8(&value[8..data_end_index]).unwrap();
+        let crc = u32::from_be_bytes(value[data_end_index..].try_into().unwrap());
 
-        // the crc part is ignored for now, it will be added later as a struct field
         Ok(Chunk {
+            length,
             chunk_type: ChunkType::from_str(chunk_type_raw_str).unwrap(),
-            data: message.as_bytes().to_vec(),
+            chunk_data: chunk_data.as_bytes().to_vec(),
+            crc,
         })
     }
 }
