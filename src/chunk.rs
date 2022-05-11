@@ -1,7 +1,7 @@
 use crc::{Crc, CRC_32_ISO_HDLC};
 use std::{
     error,
-    fmt::Display,
+    fmt::{write, Display},
     str::{self, FromStr},
 };
 
@@ -39,6 +39,10 @@ impl Chunk {
 
     fn chunk_type(&self) -> &ChunkType {
         &self.chunk_type
+    }
+
+    fn data(&self) -> &[u8] {
+        &self.chunk_data
     }
 
     fn data_as_string(&self) -> Result<String> {
@@ -80,7 +84,13 @@ impl Chunk {
 
 impl Display for Chunk {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        writeln!(f, "Chunk {{",)?;
+        writeln!(f, "  Length: {}", self.length())?;
+        writeln!(f, "  Type: {}", self.chunk_type())?;
+        writeln!(f, "  Data: {} bytes", self.data().len())?;
+        writeln!(f, "  Crc: {}", self.crc())?;
+        writeln!(f, "}}",)?;
+        Ok(())
     }
 }
 
