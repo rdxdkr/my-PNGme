@@ -61,6 +61,10 @@ impl Chunk {
     fn chunk_type(&self) -> &ChunkType {
         &self.chunk_type
     }
+
+    fn data_as_string(&self) -> Result<String> {
+        todo!()
+    }
 }
 
 impl TryFrom<&[u8]> for Chunk {
@@ -121,6 +125,15 @@ mod tests {
         let chunk = testing_chunk();
 
         assert_eq!(chunk.chunk_type().to_string(), String::from("RuSt"));
+    }
+
+    #[test]
+    fn test_chunk_string() {
+        let chunk = testing_chunk();
+        let chunk_string = chunk.data_as_string().unwrap();
+        let expected_chunk_string = String::from("This is where your secret message will be!");
+
+        assert_eq!(chunk_string, expected_chunk_string);
     }
 
     fn testing_chunk() -> Chunk {
