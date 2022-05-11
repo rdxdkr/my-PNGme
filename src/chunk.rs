@@ -63,7 +63,7 @@ impl Chunk {
     }
 
     fn data_as_string(&self) -> Result<String> {
-        todo!()
+        Ok(str::from_utf8(&self.chunk_data).unwrap().to_string())
     }
 }
 
