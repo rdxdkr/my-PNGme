@@ -1,4 +1,5 @@
 use crc::{Crc, CRC_32_ISO_HDLC};
+use std::str::{self, FromStr};
 
 use crate::{chunk_type::ChunkType, Error};
 
@@ -53,7 +54,24 @@ impl TryFrom<&[u8]> for Chunk {
     type Error = Error;
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        todo!()
+        /*
+            a slice of u8 (byte) interpreted as a png chunk is structured as follows:
+            - first 4 bytes: data length (n)
+            - next 4 bytes: chunk type
+            - next n bytes: message
+            - last 4 bytes: crc
+        */
+
+        // the length is encoded as big endian bytes, so it must be read like this
+        let data_length = u32::from_be_bytes(value[..4].try_into().unwrap());
+        let chunk_type_raw_str = str::from_utf8(&value[4..8]).unwrap();
+        let message = str::from_utf8(&value[8..8 + data_length as usize]).unwrap();
+
+        // the crc part is ignored for now, it will be added later as a struct field
+        Ok(Chunk {
+            chunk_type: ChunkType::from_str(chunk_type_raw_str).unwrap(),
+            data: message.as_bytes().to_vec(),
+        })
     }
 }
 
