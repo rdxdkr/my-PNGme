@@ -1,7 +1,7 @@
 use crc::{Crc, CRC_32_ISO_HDLC};
 use std::str::{self, FromStr};
 
-use crate::{chunk_type::ChunkType, Error};
+use crate::{chunk_type::ChunkType, Error, Result};
 
 struct Chunk {
     chunk_type: ChunkType,
@@ -57,7 +57,7 @@ impl Chunk {
 impl TryFrom<&[u8]> for Chunk {
     type Error = Error;
 
-    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+    fn try_from(value: &[u8]) -> Result<Self> {
         /*
             a slice of u8 (byte) interpreted as a png chunk is structured as follows:
             - first 4 bytes: data length (n)
@@ -100,12 +100,14 @@ mod tests {
     #[test]
     fn test_chunk_length() {
         let chunk = testing_chunk();
+
         assert_eq!(chunk.length(), 42);
     }
 
     #[test]
     fn test_chunk_type() {
         let chunk = testing_chunk();
+
         assert_eq!(chunk.chunk_type().to_string(), String::from("RuSt"));
     }
 
@@ -114,7 +116,6 @@ mod tests {
         let chunk_type = "RuSt".as_bytes();
         let message_bytes = "This is where your secret message will be!".as_bytes();
         let crc: u32 = 2882656334;
-
         let chunk_data: Vec<u8> = data_length
             .to_be_bytes()
             .iter()
