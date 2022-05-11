@@ -50,7 +50,7 @@ impl Chunk {
     }
 
     fn chunk_type(&self) -> &ChunkType {
-        todo!()
+        &self.chunk_type
     }
 }
 
