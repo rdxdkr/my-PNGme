@@ -48,6 +48,10 @@ impl Chunk {
 
         crc.checksum(&(chunk.iter().cloned().chain(data).collect::<Vec<u8>>()))
     }
+
+    fn chunk_type(&self) -> &ChunkType {
+        todo!()
+    }
 }
 
 impl TryFrom<&[u8]> for Chunk {
@@ -97,6 +101,12 @@ mod tests {
     fn test_chunk_length() {
         let chunk = testing_chunk();
         assert_eq!(chunk.length(), 42);
+    }
+
+    #[test]
+    fn test_chunk_type() {
+        let chunk = testing_chunk();
+        assert_eq!(chunk.chunk_type().to_string(), String::from("RuSt"));
     }
 
     fn testing_chunk() -> Chunk {
