@@ -49,6 +49,18 @@ impl Chunk {
         Ok(str::from_utf8(&self.chunk_data).unwrap().to_string())
     }
 
+    fn as_bytes(&self) -> Vec<u8> {
+        // this code is the same as the one used in testing_chunk() in the unit tests
+        self.length
+            .to_be_bytes()
+            .iter()
+            .chain(self.chunk_type.bytes().iter())
+            .chain(self.chunk_data.iter())
+            .chain(self.crc.to_be_bytes().iter())
+            .copied()
+            .collect::<Vec<u8>>()
+    }
+
     fn calculate_crc(chunk_type: &ChunkType, data: &Vec<u8>) -> u32 {
         /*
             from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-layout
