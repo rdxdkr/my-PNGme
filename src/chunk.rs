@@ -1,5 +1,9 @@
 use crc::{Crc, CRC_32_ISO_HDLC};
-use std::str::{self, FromStr};
+use std::{
+    error,
+    fmt::Display,
+    str::{self, FromStr},
+};
 
 use crate::{chunk_type::ChunkType, Error, Result};
 
@@ -9,6 +13,9 @@ struct Chunk {
     chunk_data: Vec<u8>,
     crc: u32,
 }
+
+#[derive(Debug)]
+struct InvalidCrcError;
 
 impl Chunk {
     fn new(chunk_type: ChunkType, data: Vec<u8>) -> Self {
@@ -82,16 +89,44 @@ impl TryFrom<&[u8]> for Chunk {
         // the length and crc are encoded as big endian bytes, so they must be read like this
         let length = u32::from_be_bytes(value[..4].try_into().unwrap());
         let chunk_type_raw_str = str::from_utf8(&value[4..8]).unwrap();
+        let chunk_type = ChunkType::from_str(chunk_type_raw_str).unwrap();
+
         let data_end_index = 8 + length as usize;
         let chunk_data = str::from_utf8(&value[8..data_end_index]).unwrap();
-        let crc = u32::from_be_bytes(value[data_end_index..].try_into().unwrap());
+        let chunk_data = chunk_data.as_bytes().to_vec();
+        let input_crc = u32::from_be_bytes(value[data_end_index..].try_into().unwrap());
+
+        let crc = Crc::<u32>::new(&CRC_32_ISO_HDLC);
+        let crc = crc.checksum(
+            &chunk_type
+                .bytes()
+                .iter()
+                .cloned()
+                .chain(chunk_data.iter().cloned())
+                .collect::<Vec<u8>>(),
+        );
+
+        if crc != input_crc {
+            return Err(Box::new(InvalidCrcError));
+        }
 
         Ok(Chunk {
             length,
-            chunk_type: ChunkType::from_str(chunk_type_raw_str).unwrap(),
-            chunk_data: chunk_data.as_bytes().to_vec(),
+            chunk_type,
+            chunk_data,
             crc,
         })
+    }
+}
+
+impl error::Error for InvalidCrcError {}
+
+impl Display for InvalidCrcError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "A valid CRC must match the one that is calculated again upon creating a Chunk"
+        )
     }
 }
 
