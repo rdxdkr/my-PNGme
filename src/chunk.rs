@@ -136,6 +136,13 @@ mod tests {
         assert_eq!(chunk_string, expected_chunk_string);
     }
 
+    #[test]
+    fn test_chunk_crc() {
+        let chunk = testing_chunk();
+
+        assert_eq!(chunk.crc(), 2882656334);
+    }
+
     fn testing_chunk() -> Chunk {
         let data_length: u32 = 42;
         let chunk_type = "RuSt".as_bytes();
