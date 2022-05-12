@@ -7,7 +7,7 @@ use std::{
 
 use crate::{chunk_type::ChunkType, Error, Result};
 
-struct Chunk {
+pub struct Chunk {
     length: u32,
     chunk_type: ChunkType,
     chunk_data: Vec<u8>,
@@ -18,7 +18,7 @@ struct Chunk {
 struct InvalidCrcError;
 
 impl Chunk {
-    fn new(chunk_type: ChunkType, data: Vec<u8>) -> Self {
+    pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Self {
         let crc = Self::calculate_crc(&chunk_type, &data);
 
         Self {
