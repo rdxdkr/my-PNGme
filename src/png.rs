@@ -1,14 +1,16 @@
 use crate::chunk::Chunk;
 
-struct Png {}
+struct Png {
+    chunks: Vec<Chunk>,
+}
 
 impl Png {
     fn from_chunks(chunks: Vec<Chunk>) -> Self {
-        todo!()
+        Png { chunks }
     }
 
     fn chunks(&self) -> &[Chunk] {
-        todo!()
+        &self.chunks
     }
 }
 
