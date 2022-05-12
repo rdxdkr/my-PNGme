@@ -49,7 +49,7 @@ impl Chunk {
         Ok(str::from_utf8(&self.chunk_data).unwrap().to_string())
     }
 
-    fn as_bytes(&self) -> Vec<u8> {
+    pub fn as_bytes(&self) -> Vec<u8> {
         // this code is the same as the one used in testing_chunk() in the unit tests
         self.length
             .to_be_bytes()

@@ -1,16 +1,26 @@
-use crate::chunk::Chunk;
+use crate::{chunk::Chunk, Error, Result};
 
 struct Png {
     chunks: Vec<Chunk>,
 }
 
 impl Png {
+    const STANDARD_HEADER: [u8; 8] = [0; 8];
+
     fn from_chunks(chunks: Vec<Chunk>) -> Self {
         Png { chunks }
     }
 
     fn chunks(&self) -> &[Chunk] {
         &self.chunks
+    }
+}
+
+impl TryFrom<&[u8]> for Png {
+    type Error = Error;
+
+    fn try_from(value: &[u8]) -> Result<Self> {
+        todo!()
     }
 }
 
@@ -25,6 +35,22 @@ mod tests {
         let png = Png::from_chunks(chunks);
 
         assert_eq!(png.chunks().len(), 3);
+    }
+
+    #[test]
+    fn test_valid_from_bytes() {
+        let chunk_bytes: Vec<u8> = testing_chunks()
+            .into_iter()
+            .flat_map(|chunk| chunk.as_bytes())
+            .collect();
+        let bytes: Vec<u8> = Png::STANDARD_HEADER
+            .iter()
+            .chain(chunk_bytes.iter())
+            .copied()
+            .collect();
+        let png = Png::try_from(bytes.as_ref());
+
+        assert!(png.is_ok());
     }
 
     fn testing_chunks() -> Vec<Chunk> {
