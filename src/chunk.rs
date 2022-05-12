@@ -15,7 +15,7 @@ pub struct Chunk {
 }
 
 #[derive(Debug)]
-struct InvalidCrcError;
+pub struct InvalidCrcError;
 
 impl Chunk {
     pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Self {
@@ -61,7 +61,7 @@ impl Chunk {
             .collect::<Vec<u8>>()
     }
 
-    fn calculate_crc(chunk_type: &ChunkType, data: &Vec<u8>) -> u32 {
+    pub fn calculate_crc(chunk_type: &ChunkType, data: &Vec<u8>) -> u32 {
         /*
             from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-layout
 
