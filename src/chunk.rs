@@ -37,7 +37,7 @@ impl Chunk {
         self.crc
     }
 
-    fn chunk_type(&self) -> &ChunkType {
+    pub fn chunk_type(&self) -> &ChunkType {
         &self.chunk_type
     }
 
@@ -45,7 +45,7 @@ impl Chunk {
         &self.chunk_data
     }
 
-    fn data_as_string(&self) -> Result<String> {
+    pub fn data_as_string(&self) -> Result<String> {
         Ok(str::from_utf8(&self.chunk_data).unwrap().to_string())
     }
 
