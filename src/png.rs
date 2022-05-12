@@ -65,6 +65,22 @@ mod tests {
         assert!(png.is_ok());
     }
 
+    #[test]
+    fn test_invalid_header() {
+        let chunk_bytes: Vec<u8> = testing_chunks()
+            .into_iter()
+            .flat_map(|chunk| chunk.as_bytes())
+            .collect();
+        let bytes: Vec<u8> = [13, 80, 78, 71, 13, 10, 26, 10]
+            .iter()
+            .chain(chunk_bytes.iter())
+            .copied()
+            .collect();
+        let png = Png::try_from(bytes.as_ref());
+
+        assert!(png.is_err());
+    }
+
     fn testing_chunks() -> Vec<Chunk> {
         let mut chunks = Vec::new();
 
