@@ -1,5 +1,5 @@
 use crate::{chunk::Chunk, Error, Result};
-use std::{str::FromStr, fmt::Display, error};
+use std::{error, fmt::Display, str::FromStr};
 
 struct Png {
     chunks: Vec<Chunk>,
