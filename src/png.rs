@@ -1,9 +1,12 @@
 use crate::{chunk::Chunk, Error, Result};
-use std::str::FromStr;
+use std::{str::FromStr, fmt::Display, error};
 
 struct Png {
     chunks: Vec<Chunk>,
 }
+
+#[derive(Debug)]
+struct InvalidHeaderError;
 
 impl Png {
     const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
@@ -23,6 +26,11 @@ impl TryFrom<&[u8]> for Png {
     fn try_from(value: &[u8]) -> Result<Self> {
         let mut chunks: Vec<Chunk> = vec![];
         let header = &value[..8];
+
+        if header != Self::STANDARD_HEADER {
+            return Err(Box::new(InvalidHeaderError));
+        }
+
         let mut cursor = 8usize;
 
         while cursor < value.len() {
@@ -33,6 +41,17 @@ impl TryFrom<&[u8]> for Png {
         }
 
         Ok(Png { chunks })
+    }
+}
+
+impl error::Error for InvalidHeaderError {}
+
+impl Display for InvalidHeaderError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "A valid PNG header must match the following sequence of bytes: [137, 80, 78, 71, 13, 10, 26, 10]"
+        )
     }
 }
 
