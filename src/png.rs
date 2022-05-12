@@ -1,10 +1,5 @@
-use std::{str, str::FromStr};
-
-use crate::{
-    chunk::{Chunk, InvalidCrcError},
-    chunk_type::ChunkType,
-    Error, Result,
-};
+use crate::{chunk::Chunk, Error, Result};
+use std::str::FromStr;
 
 struct Png {
     chunks: Vec<Chunk>,
@@ -31,45 +26,10 @@ impl TryFrom<&[u8]> for Png {
         let mut cursor = 8usize;
 
         while cursor < value.len() {
-            let length = u32::from_be_bytes(value[cursor..cursor + 4].try_into().unwrap());
-            cursor += 4;
-            let chunk_type = str::from_utf8(&value[cursor..cursor + 4]).unwrap();
-            let chunk_type_2 = ChunkType::from_str(chunk_type).unwrap();
-            cursor += 4;
+            let chunk = Chunk::try_from(&value[cursor..]).unwrap();
 
-            let data_end_index = cursor + length as usize;
-            let chunk_data = str::from_utf8(&value[cursor..data_end_index])
-                .unwrap()
-                .as_bytes()
-                .to_vec();
-            cursor += length as usize;
-
-            let input_crc = u32::from_be_bytes(
-                value[data_end_index..data_end_index + 4]
-                    .try_into()
-                    .unwrap(),
-            );
-            cursor += 4;
-            let crc = Chunk::calculate_crc(&chunk_type_2, &chunk_data);
-
-            if crc != input_crc {
-                return Err(Box::new(InvalidCrcError));
-            }
-
-            chunks.push(
-                Chunk::try_from(
-                    length
-                        .to_be_bytes()
-                        .iter()
-                        .chain(chunk_type.as_bytes().iter())
-                        .chain(chunk_data.iter())
-                        .chain(crc.to_be_bytes().iter())
-                        .copied()
-                        .collect::<Vec<u8>>()
-                        .as_ref(),
-                )
-                .unwrap(),
-            );
+            cursor += 4 + 4 + chunk.length() as usize + 4;
+            chunks.push(chunk);
         }
 
         Ok(Png { chunks })
@@ -115,8 +75,6 @@ mod tests {
     }
 
     fn chunk_from_strings(chunk_type: &str, data: &str) -> Result<Chunk> {
-        use std::str::FromStr;
-
         let chunk_type = ChunkType::from_str(chunk_type)?;
         let data: Vec<u8> = data.bytes().collect();
 

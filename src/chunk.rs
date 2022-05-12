@@ -29,7 +29,7 @@ impl Chunk {
         }
     }
 
-    fn length(&self) -> u32 {
+    pub fn length(&self) -> u32 {
         self.length
     }
 
@@ -128,7 +128,7 @@ impl TryFrom<&[u8]> for Chunk {
             .as_bytes()
             .to_vec();
 
-        let input_crc = u32::from_be_bytes(value[data_end_index..].try_into().unwrap());
+        let input_crc = u32::from_be_bytes(value[data_end_index..data_end_index + 4].try_into().unwrap());
         let crc = Self::calculate_crc(&chunk_type, &chunk_data);
 
         if crc != input_crc {
