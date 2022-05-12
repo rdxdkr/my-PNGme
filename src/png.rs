@@ -122,6 +122,14 @@ mod tests {
         assert!(png.is_err());
     }
 
+    #[test]
+    fn test_list_chunks() {
+        let png = testing_png();
+        let chunks = png.chunks();
+
+        assert_eq!(chunks.len(), 3);
+    }
+
     fn testing_chunks() -> Vec<Chunk> {
         let mut chunks = Vec::new();
 
@@ -136,5 +144,11 @@ mod tests {
         let data: Vec<u8> = data.bytes().collect();
 
         Ok(Chunk::new(chunk_type, data))
+    }
+
+    fn testing_png() -> Png {
+        let chunks = testing_chunks();
+
+        Png::from_chunks(chunks)
     }
 }
