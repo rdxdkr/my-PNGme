@@ -1,7 +1,7 @@
 use crc::{Crc, CRC_32_ISO_HDLC};
 use std::{
     error,
-    fmt::{write, Display},
+    fmt::{Display},
     str::{self, FromStr},
 };
 
