@@ -32,6 +32,10 @@ impl Png {
     fn append_chunk(&mut self, chunk: Chunk) {
         self.chunks.push(chunk);
     }
+
+    fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
+        todo!()
+    }
 }
 
 impl TryFrom<&[u8]> for Png {
@@ -163,6 +167,18 @@ mod tests {
 
         assert_eq!(&chunk.chunk_type().to_string(), "TeSt");
         assert_eq!(&chunk.data_as_string().unwrap(), "Message");
+    }
+
+    #[test]
+    fn test_remove_chunk() {
+        let mut png = testing_png();
+
+        png.append_chunk(chunk_from_strings("TeSt", "Message").unwrap());
+        png.remove_chunk("TeSt").unwrap();
+
+        let chunk = png.chunk_by_type("TeSt");
+
+        assert!(chunk.is_none());
     }
 
     fn testing_chunks() -> Vec<Chunk> {
