@@ -30,7 +30,7 @@ impl Png {
     }
 
     fn append_chunk(&mut self, chunk: Chunk) {
-        todo!()
+        self.chunks.push(chunk);
     }
 }
 
