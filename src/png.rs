@@ -69,7 +69,7 @@ impl TryFrom<&[u8]> for Png {
             chunks.push(chunk);
         }
 
-        Ok(Png { chunks })
+        Ok(Self { chunks })
     }
 }
 
