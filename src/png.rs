@@ -8,6 +8,9 @@ struct Png {
 #[derive(Debug)]
 struct InvalidHeaderError;
 
+#[derive(Debug)]
+struct ChunkNotFoundError;
+
 impl Png {
     const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
 
@@ -34,7 +37,15 @@ impl Png {
     }
 
     fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
-        todo!()
+        if let Some(index) = self
+            .chunks
+            .iter()
+            .position(|c| c.chunk_type().to_string() == chunk_type)
+        {
+            return Ok(self.chunks.remove(index));
+        }
+
+        Err(Box::new(ChunkNotFoundError))
     }
 }
 
@@ -70,6 +81,14 @@ impl Display for InvalidHeaderError {
             f,
             "A valid PNG header must match the following sequence of bytes: [137, 80, 78, 71, 13, 10, 26, 10]"
         )
+    }
+}
+
+impl error::Error for ChunkNotFoundError {}
+
+impl Display for ChunkNotFoundError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "The provided chunk is not part of this PNG file")
     }
 }
 
