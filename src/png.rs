@@ -20,7 +20,13 @@ impl Png {
     }
 
     fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
-        todo!()
+        for chunk in &self.chunks {
+            if chunk.chunk_type().to_string() == chunk_type {
+                return Some(chunk);
+            }
+        }
+
+        None
     }
 }
 
