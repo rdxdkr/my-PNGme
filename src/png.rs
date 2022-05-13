@@ -47,6 +47,10 @@ impl Png {
 
         Err(Box::new(ChunkNotFoundError))
     }
+
+    fn as_bytes(&self) -> Vec<u8> {
+        todo!()
+    }
 }
 
 impl TryFrom<&[u8]> for Png {
@@ -205,6 +209,15 @@ mod tests {
         let png = Png::try_from(&PNG_FILE[..]);
 
         assert!(png.is_ok());
+    }
+
+    #[test]
+    fn test_as_bytes() {
+        let png = Png::try_from(&PNG_FILE[..]).unwrap();
+        let actual = png.as_bytes();
+        let expected: Vec<u8> = PNG_FILE.iter().copied().collect();
+
+        assert_eq!(actual, expected);
     }
 
     fn testing_chunks() -> Vec<Chunk> {
