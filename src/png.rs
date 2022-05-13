@@ -14,6 +14,10 @@ struct ChunkNotFoundError;
 impl Png {
     const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
 
+    fn header(&self) -> &[u8; 8] {
+        &Self::STANDARD_HEADER
+    }
+
     fn from_chunks(chunks: Vec<Chunk>) -> Self {
         Png { chunks }
     }
