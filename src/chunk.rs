@@ -123,10 +123,17 @@ impl TryFrom<&[u8]> for Chunk {
         let chunk_type = ChunkType::from_str(str::from_utf8(&value[4..8]).unwrap()).unwrap();
 
         let data_end_index = 8 + length as usize;
-        let chunk_data = str::from_utf8(&value[8..data_end_index])
-            .unwrap()
-            .as_bytes()
-            .to_vec();
+        let chunk_data: Vec<u8>;
+
+        /*
+            not sure why I needed to use from_utf8_unchecked() instead of the usual from_utf8(),
+            it's the only way I've found to make test_png_from_image_file() in png.rs pass
+        */
+        unsafe {
+            chunk_data = str::from_utf8_unchecked(&value[8..data_end_index])
+                .as_bytes()
+                .to_vec();
+        }
 
         let input_crc = u32::from_be_bytes(value[data_end_index..data_end_index + 4].try_into().unwrap());
         let crc = Self::calculate_crc(&chunk_type, &chunk_data);
