@@ -10,4 +10,6 @@ Since many unit tests are already provided, I've decided to follow a proper Test
 
 **Chapter 2: Done**
 
-Chapter 3: Started
+**Chapter 3: Done**
+
+Chapter 4: Started
