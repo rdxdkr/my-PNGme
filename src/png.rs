@@ -86,6 +86,12 @@ impl TryFrom<&[u8]> for Png {
     }
 }
 
+impl Display for Png {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
 impl error::Error for InvalidHeaderError {}
 
 impl Display for InvalidHeaderError {
@@ -227,6 +233,21 @@ mod tests {
         let expected: Vec<u8> = PNG_FILE.iter().copied().collect();
 
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_png_trait_impls() {
+        let chunk_bytes: Vec<u8> = testing_chunks()
+            .into_iter()
+            .flat_map(|chunk| chunk.as_bytes())
+            .collect();
+        let bytes: Vec<u8> = Png::STANDARD_HEADER
+            .iter()
+            .chain(chunk_bytes.iter())
+            .copied()
+            .collect();
+        let png: Png = TryFrom::try_from(bytes.as_ref()).unwrap();
+        let _png_string = format!("{}", png);
     }
 
     fn testing_chunks() -> Vec<Chunk> {
