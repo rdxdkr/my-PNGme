@@ -88,7 +88,19 @@ impl TryFrom<&[u8]> for Png {
 
 impl Display for Png {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        for (i, b) in Self::STANDARD_HEADER.iter().enumerate() {
+            if i < Self::STANDARD_HEADER.len() - 1 {
+                write!(f, "{} ", b)?;
+            } else {
+                writeln!(f, "{}", b)?;
+            }
+        }
+
+        for chunk in &self.chunks {
+            write!(f, "{}", chunk)?;
+        }
+
+        Ok(())
     }
 }
 
