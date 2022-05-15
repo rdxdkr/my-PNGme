@@ -67,7 +67,8 @@ impl Chunk {
 
             the crc is calculated on the bytes of the chunk type and data, and it needs to be 4 bytes long
 
-            I had to try out pretty much all of the 32 bit algorithms available in the crc crate, until I found the one that works with the provided test
+            I had to try out pretty much all of the 32 bit algorithms available in the crc crate,
+            until I found the one that works with the provided test
         */
         let crc = Crc::<u32>::new(&CRC_32_ISO_HDLC);
 
@@ -122,16 +123,20 @@ impl TryFrom<&[u8]> for Chunk {
         let length = u32::from_be_bytes(value[..4].try_into().unwrap());
         let chunk_type = ChunkType::from_str(str::from_utf8(&value[4..8]).unwrap()).unwrap();
         let data_end_index = 8 + length as usize;
-        
+
         /*
-        not sure why I needed to use from_utf8_unchecked() instead of the usual from_utf8(),
-        it's the only way I've found to make test_png_from_image_file() in png.rs pass
+            a slice can be immediately converted into a vector of the same type by calling to_vec()
+            on it, which is what I was doing before, but only after performing a useless and harmful
+            conversion of the slice into a string, which implied that all of the bytes would be
+            valid ASCII characters and in fact they are not
+
+            that caused the Png::test_png_from_image_file test to fail in the first place, which
+            led to the senseless introduction of unsafe just to sweep the issue under the carpet
+            
+            only, the issue has come back to bite me again in the most painful of ways because real
+            PNG files always contain some bytes which are not valid ASCII characters
         */
-        let chunk_data = unsafe {
-            str::from_utf8_unchecked(&value[8..data_end_index])
-                .as_bytes()
-                .to_vec()
-        };
+        let chunk_data = value[8..data_end_index].to_vec();
 
         let input_crc = u32::from_be_bytes(
             value[data_end_index..data_end_index + 4]
