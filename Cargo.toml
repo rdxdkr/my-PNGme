@@ -2,9 +2,11 @@
 name = "pngme"
 version = "0.1.0"
 edition = "2021"
+authors = ["rdxdkr"]
+description = "My personal implementation of PNGme by picklenerd"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 crc = "3.0.0"
-clap = "3.1.18"
+clap = { version = "3.1.18", features = ["derive"] }
