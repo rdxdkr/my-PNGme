@@ -1,6 +1,10 @@
 use crate::{chunk::Chunk, chunk_type::ChunkType, png::Png, Result};
 use clap::{Args, Parser, Subcommand};
-use std::{fs::File, io::Write, str::FromStr};
+use std::{
+    fs::File,
+    io::{Read, Write},
+    str::FromStr,
+};
 
 #[derive(Debug, Parser)]
 #[clap(author, version, about)]
@@ -29,14 +33,49 @@ pub struct EncodeArgs {
 
 impl EncodeArgs {
     fn encode(&self) -> Result<()> {
-        let mut file = File::create(&self.file_path).unwrap();
+        /*
+            if a file with the given name is found open it, else create a new one
+        */
+        let mut file = if let Ok(file) = File::options()
+            .read(true)
+            .append(true)
+            .open(&self.file_path)
+        {
+            file
+        } else {
+            File::create(&self.file_path).unwrap()
+        };
         let chunk = Chunk::new(
             ChunkType::from_str(&self.chunk_type).unwrap(),
             self.message.as_bytes().to_vec(),
         );
-        let png = Png::from_chunks(vec![chunk]);
+        let mut buffer = Vec::<u8>::new();
+        let mut bytes_read = 0;
+        let png = if let Ok(bytes) = file.read_to_end(&mut buffer) {
+            bytes_read = bytes;
 
-        if let Err(e) = file.write_all(&png.as_bytes()) {
+            if let Ok(mut png) = Png::try_from(&buffer[..]) {
+                png.append_chunk(chunk);
+                png
+            } else {
+                Png::from_chunks(vec![chunk])
+            }
+        } else {
+            Png::from_chunks(vec![chunk])
+        };
+
+        /*
+            if a file with the given name already exists but it's empty,
+            write a full PNG inside it, else append just the new chunk
+        */
+        let buffer = if bytes_read == 0 {
+            png.as_bytes()
+        } else {
+            png.chunk_by_type(&self.chunk_type).unwrap().as_bytes()
+        };
+
+        // if a file with the given name does not contain a valid PNG structure, do I need to overwrite it all?
+        if let Err(e) = file.write_all(&buffer[..]) {
             Err(Box::new(e))
         } else {
             Ok(())

@@ -26,7 +26,7 @@ impl Png {
         &self.chunks
     }
 
-    fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
+    pub fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
         for chunk in &self.chunks {
             if chunk.chunk_type().to_string() == chunk_type {
                 return Some(chunk);
@@ -36,7 +36,7 @@ impl Png {
         None
     }
 
-    fn append_chunk(&mut self, chunk: Chunk) {
+    pub fn append_chunk(&mut self, chunk: Chunk) {
         self.chunks.push(chunk);
     }
 
@@ -70,6 +70,10 @@ impl TryFrom<&[u8]> for Png {
     type Error = Error;
 
     fn try_from(value: &[u8]) -> Result<Self> {
+        if value.len() < 8 {
+            return Err(Box::new(InvalidHeaderError));
+        }
+
         let mut chunks: Vec<Chunk> = vec![];
         let header = &value[..8];
 
