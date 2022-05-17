@@ -101,6 +101,7 @@ mod tests {
     */
 
     const FILE_NAME: &str = "test.png";
+    const OUTPUT_NAME: &str = "output.png";
     const ENCODE: &str = "encode";
 
     #[test]
@@ -149,6 +150,37 @@ mod tests {
                     .collect::<Vec<u8>>()
             );
             delete_file(FILE_NAME);
+        }
+    }
+
+    #[test]
+    fn test_encode_new_file_with_separate_output() {
+        create_file(FILE_NAME);
+
+        let args = parse_args(&[
+            ENCODE,
+            FILE_NAME,
+            "FrSt",
+            "I am the first chunk",
+            OUTPUT_NAME,
+        ])
+        .unwrap();
+
+        if let CommandType::Encode(encode_args) = args.command_type {
+            encode_args.encode().unwrap();
+
+            let empty_input_file = read_file(FILE_NAME);
+            let png_from_empty_file = Png::try_from(&read_file(FILE_NAME)[..]);
+
+            assert_eq!(empty_input_file.len(), 0);
+            assert!(png_from_empty_file.is_err());
+
+            let png_from_output_file = Png::try_from(&read_file(OUTPUT_NAME)[..]).unwrap();
+            let png_test = testing_png_simple();
+
+            assert_eq!(png_from_output_file.as_bytes(), png_test.as_bytes());
+            delete_file(FILE_NAME);
+            delete_file(OUTPUT_NAME);
         }
     }
 
