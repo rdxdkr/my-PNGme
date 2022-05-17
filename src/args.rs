@@ -81,6 +81,38 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_encode_existing_file() {
+        prepare_file(FILE_NAME);
+
+        let new_chunk = chunk_from_strings("TeSt", "I am a test chunk").unwrap();
+        let args = parse_args(&[
+            ENCODE,
+            FILE_NAME,
+            &new_chunk.chunk_type().to_string(),
+            &new_chunk.data_as_string().unwrap(),
+        ])
+        .unwrap();
+
+        if let CommandType::Encode(encode_args) = args.command_type {
+            encode_args.encode().unwrap();
+
+            let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
+            let png_test = testing_png_full();
+
+            assert_eq!(
+                png_from_file.as_bytes(),
+                png_test
+                    .as_bytes()
+                    .iter()
+                    .chain(new_chunk.as_bytes().iter())
+                    .cloned()
+                    .collect::<Vec<u8>>()
+            );
+            delete_file(FILE_NAME);
+        }
+    }
+
     fn create_file(file_name: &str) {
         File::create(file_name).unwrap();
     }
