@@ -54,39 +54,56 @@ mod tests {
         str::FromStr,
     };
 
+    /*
+        since these tests involve file manipulation, either each test has to work with a different
+        file or the tests must not be run concurrently to avoid unexpected behaviour
+
+        in this case, the tests are run with "cargo test -- --test-threads=1"
+    */
+
+    const FILE_NAME: &str = "test.png";
+    const ENCODE: &str = "encode";
+
     #[test]
     fn test_encode_new_file() {
-        let filename = "a.png";
+        create_file(FILE_NAME);
 
-        create_file(filename);
-
-        let args = parse_args(&["encode", filename, "FrSt", "I am the first chunk"]).unwrap();
+        let args = parse_args(&[ENCODE, FILE_NAME, "FrSt", "I am the first chunk"]).unwrap();
 
         if let CommandType::Encode(encode_args) = args.command_type {
             encode_args.encode().unwrap();
 
-            let png_from_file = Png::try_from(&read_file(filename)[..]).unwrap();
+            let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
             let png_test = testing_png_simple();
 
             assert_eq!(png_from_file.as_bytes(), png_test.as_bytes());
-            delete_file(filename);
+            delete_file(FILE_NAME);
         }
     }
 
-    fn create_file(filename: &str) {
-        File::create(filename).unwrap();
+    fn create_file(file_name: &str) {
+        File::create(file_name).unwrap();
     }
 
-    fn read_file(filename: &str) -> Vec<u8> {
+    fn prepare_file(file_name: &str) {
+        create_file(file_name);
+
+        let png = testing_png_full();
+        let mut file = File::options().write(true).open(file_name).unwrap();
+
+        file.write_all(&png.as_bytes()).unwrap();
+    }
+
+    fn read_file(file_name: &str) -> Vec<u8> {
         let mut buffer = Vec::<u8>::new();
-        let mut file = File::open(filename).unwrap();
+        let mut file = File::open(file_name).unwrap();
 
         file.read_to_end(&mut buffer).unwrap();
         buffer
     }
 
-    fn delete_file(filename: &str) {
-        fs::remove_file(filename).unwrap();
+    fn delete_file(file_name: &str) {
+        fs::remove_file(file_name).unwrap();
     }
 
     fn parse_args(args: &[&str]) -> clap::Result<PngMeArgs> {
@@ -102,6 +119,16 @@ mod tests {
 
     fn testing_png_simple() -> Png {
         let chunks = vec![chunk_from_strings("FrSt", "I am the first chunk").unwrap()];
+
+        Png::from_chunks(chunks)
+    }
+
+    fn testing_png_full() -> Png {
+        let chunks = vec![
+            chunk_from_strings("FrSt", "I am the first chunk").unwrap(),
+            chunk_from_strings("miDl", "I am another chunk").unwrap(),
+            chunk_from_strings("LASt", "I am the last chunk").unwrap(),
+        ];
 
         Png::from_chunks(chunks)
     }
