@@ -134,6 +134,20 @@ mod tests {
     }
 
     #[test]
+    fn test_encode_creates_new_file_if_not_exists() {
+        let args = parse_args(&[ENCODE, FILE_NAME, "FrSt", "I am the first chunk"]).unwrap();
+
+        if let CommandType::Encode(encode_args) = args.command_type {
+            encode_args.encode().unwrap();
+
+            let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
+
+            assert_eq!(png_from_file.as_bytes(), testing_png_simple().as_bytes());
+            delete_file(FILE_NAME);
+        }
+    }
+
+    #[test]
     fn test_encode_existing_file() {
         prepare_file(FILE_NAME);
 
