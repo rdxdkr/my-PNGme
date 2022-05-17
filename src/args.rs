@@ -127,9 +127,8 @@ mod tests {
             encode_args.encode().unwrap();
 
             let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
-            let png_test = testing_png_simple();
 
-            assert_eq!(png_from_file.as_bytes(), png_test.as_bytes());
+            assert_eq!(png_from_file.as_bytes(), testing_png_simple().as_bytes());
             delete_file(FILE_NAME);
         }
     }
@@ -138,7 +137,7 @@ mod tests {
     fn test_encode_existing_file() {
         prepare_file(FILE_NAME);
 
-        let new_chunk = chunk_from_strings("TeSt", "I am a test chunk").unwrap();
+        let new_chunk = test_chunk().unwrap();
         let args = parse_args(&[
             ENCODE,
             FILE_NAME,
@@ -151,11 +150,10 @@ mod tests {
             encode_args.encode().unwrap();
 
             let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
-            let png_test = testing_png_full();
 
             assert_eq!(
                 png_from_file.as_bytes(),
-                png_test
+                testing_png_full()
                     .as_bytes()
                     .iter()
                     .chain(new_chunk.as_bytes().iter())
@@ -189,9 +187,11 @@ mod tests {
             assert!(png_from_empty_file.is_err());
 
             let png_from_output_file = Png::try_from(&read_file(OUTPUT_NAME)[..]).unwrap();
-            let png_test = testing_png_simple();
 
-            assert_eq!(png_from_output_file.as_bytes(), png_test.as_bytes());
+            assert_eq!(
+                png_from_output_file.as_bytes(),
+                testing_png_simple().as_bytes()
+            );
             delete_file(FILE_NAME);
             delete_file(OUTPUT_NAME);
         }
@@ -256,6 +256,10 @@ mod tests {
 
     fn parse_args(args: &[&str]) -> clap::Result<PngMeArgs> {
         PngMeArgs::try_parse_from(std::iter::once("pngme").chain(args.iter().cloned()))
+    }
+
+    fn test_chunk() -> Result<Chunk> {
+        chunk_from_strings("TeSt", "I am a test chunk")
     }
 
     fn chunk_from_strings(chunk_type: &str, data: &str) -> Result<Chunk> {
