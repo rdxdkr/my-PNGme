@@ -1,5 +1,6 @@
-use crate::Result;
+use crate::{chunk::Chunk, chunk_type::ChunkType, png::Png, Result};
 use clap::{Args, Parser, Subcommand};
+use std::{fs::File, io::Write, str::FromStr};
 
 #[derive(Debug, Parser)]
 #[clap(author, version, about)]
@@ -15,11 +16,31 @@ pub enum CommandType {
 }
 
 #[derive(Debug, Args)]
-pub struct EncodeArgs {}
+pub struct EncodeArgs {
+    /// The path of the PNG file
+    pub file_path: String,
+
+    /// The type of PNG chunk in which to encode the message
+    pub chunk_type: String,
+
+    /// The message to encode
+    pub message: String,
+}
 
 impl EncodeArgs {
     fn encode(&self) -> Result<()> {
-        todo!()
+        let mut file = File::create(&self.file_path).unwrap();
+        let chunk = Chunk::new(
+            ChunkType::from_str(&self.chunk_type).unwrap(),
+            self.message.as_bytes().to_vec(),
+        );
+        let png = Png::from_chunks(vec![chunk]);
+
+        if let Err(e) = file.write_all(&png.as_bytes()) {
+            Err(Box::new(e))
+        } else {
+            Ok(())
+        }
     }
 }
 
