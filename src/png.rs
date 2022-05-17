@@ -1,7 +1,7 @@
 use crate::{chunk::Chunk, Error, Result};
 use std::{error, fmt::Display, str::FromStr};
 
-struct Png {
+pub struct Png {
     chunks: Vec<Chunk>,
 }
 
@@ -18,7 +18,7 @@ impl Png {
         &Self::STANDARD_HEADER
     }
 
-    fn from_chunks(chunks: Vec<Chunk>) -> Self {
+    pub fn from_chunks(chunks: Vec<Chunk>) -> Self {
         Png { chunks }
     }
 
@@ -52,7 +52,7 @@ impl Png {
         Err(Box::new(ChunkNotFoundError))
     }
 
-    fn as_bytes(&self) -> Vec<u8> {
+    pub fn as_bytes(&self) -> Vec<u8> {
         let chunks_as_bytes = (&self.chunks)
             .into_iter()
             .flat_map(|chunk| chunk.as_bytes())
