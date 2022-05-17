@@ -29,6 +29,9 @@ pub struct EncodeArgs {
 
     /// The message to encode
     pub message: String,
+
+    /// The optional path in which to save the resulting PNG file
+    pub output_file: Option<String>,
 }
 
 impl EncodeArgs {
@@ -75,11 +78,21 @@ impl EncodeArgs {
         };
 
         // if a file with the given name does not contain a valid PNG structure, do I need to overwrite it all?
-        if let Err(e) = file.write_all(&buffer[..]) {
-            Err(Box::new(e))
+        if let Some(output_file) = &self.output_file {
+            File::create(output_file)
+                .unwrap()
+                .write_all(&png.as_bytes())
+                .unwrap();
         } else {
-            Ok(())
+            if bytes_read == 0 {
+                file.write_all(&png.as_bytes()).unwrap();
+            } else {
+                file.write_all(&png.chunk_by_type(&self.chunk_type).unwrap().as_bytes())
+                    .unwrap();
+            }
         }
+
+        Ok(())
     }
 }
 
