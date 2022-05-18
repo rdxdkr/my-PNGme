@@ -17,6 +17,9 @@ pub struct PngMeArgs {
 pub enum CommandType {
     /// Encode a message in a PNG chunk and save it in a file
     Encode(EncodeArgs),
+
+    /// Decode a message from a PNG chunk contained in a file
+    Decode(DecodeArgs),
 }
 
 #[derive(Debug, Args)]
@@ -33,6 +36,9 @@ pub struct EncodeArgs {
     /// The optional path in which to save the resulting PNG file
     pub output_file: Option<String>,
 }
+
+#[derive(Debug, Args)]
+pub struct DecodeArgs {}
 
 impl EncodeArgs {
     fn encode(&self) -> Result<()> {
@@ -93,6 +99,12 @@ impl EncodeArgs {
     }
 }
 
+impl DecodeArgs {
+    fn decode(&self) -> Result<String> {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -113,6 +125,7 @@ mod tests {
     const FILE_NAME: &str = "test.png";
     const OUTPUT_NAME: &str = "output.png";
     const ENCODE: &str = "encode";
+    const DECODE: &str = "decode";
 
     #[test]
     fn test_encode_new_file() {
@@ -237,6 +250,23 @@ mod tests {
             );
             delete_file(FILE_NAME);
             delete_file(OUTPUT_NAME);
+        }
+    }
+
+   #[test]
+    fn test_decode_existing_file() {
+        prepare_file(FILE_NAME);
+
+        let args = parse_args(&[DECODE, FILE_NAME, "FrSt"]).unwrap();
+
+        if let CommandType::Decode(decode_args) = args.command_type {
+            let message = decode_args.decode();
+
+            assert!(message.is_ok());
+            assert_eq!(message.unwrap(), "I am the first chunk");
+
+            // SPOSTARE FUORI TUTTI I DELETE FILE ANCHE SOPRA
+            delete_file(FILE_NAME);
         }
     }
 
