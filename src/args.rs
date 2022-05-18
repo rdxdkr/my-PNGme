@@ -15,7 +15,7 @@ pub struct PngMeArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum CommandType {
-    /// Encode a message in a PNG chunk
+    /// Encode a message in a PNG chunk and save it in a file
     Encode(EncodeArgs),
 }
 
@@ -36,63 +36,60 @@ pub struct EncodeArgs {
 
 impl EncodeArgs {
     fn encode(&self) -> Result<()> {
-        /*
-            if a file with the given name is found open it, else create a new one
-        */
-        let mut file = if let Ok(file) = File::options()
-            .read(true)
-            .append(true)
-            .open(&self.file_path)
-        {
+        let mut file = Self::prepare_file(&self.file_path);
+        let chunk = Self::prepare_chunk(&self.chunk_type, &self.message);
+        let (png, bytes_read) = Self::prepare_png(&mut file, chunk);
+        let buffer = if bytes_read == 0 || self.output_file.is_some() {
+            png.as_bytes()
+        } else {
+            png.chunk_by_type(&self.chunk_type).unwrap().as_bytes()
+        };
+        let mut output_file = match &self.output_file {
+            Some(file_name) => File::create(file_name).unwrap(),
+            None => file,
+        };
+
+        // if a file with the given name does not contain a valid PNG structure, do I need to overwrite it all?
+        match output_file.write_all(&buffer) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(Box::new(e)),
+        }
+    }
+
+    fn prepare_file(file_path: &str) -> File {
+        // if a file with the given name is found, open it, else create a new one
+        if let Ok(file) = File::options().read(true).append(true).open(file_path) {
             file
         } else {
-            File::create(&self.file_path).unwrap()
-        };
-        let chunk = Chunk::new(
-            ChunkType::from_str(&self.chunk_type).unwrap(),
-            self.message.as_bytes().to_vec(),
-        );
+            File::create(file_path).unwrap()
+        }
+    }
+
+    fn prepare_chunk(chunk_type: &str, message: &str) -> Chunk {
+        Chunk::new(
+            ChunkType::from_str(chunk_type).unwrap(),
+            message.as_bytes().to_vec(),
+        )
+    }
+
+    fn prepare_png(file: &mut File, chunk: Chunk) -> (Png, usize) {
         let mut buffer = Vec::<u8>::new();
         let mut bytes_read = 0;
-        let png = if let Ok(bytes) = file.read_to_end(&mut buffer) {
-            bytes_read = bytes;
-
-            if let Ok(mut png) = Png::try_from(&buffer[..]) {
-                png.append_chunk(chunk);
-                png
-            } else {
-                Png::from_chunks(vec![chunk])
-            }
-        } else {
-            Png::from_chunks(vec![chunk])
-        };
 
         /*
             if a file with the given name already exists but it's empty,
             write a full PNG inside it, else append just the new chunk
         */
-        let buffer = if bytes_read == 0 {
-            png.as_bytes()
-        } else {
-            png.chunk_by_type(&self.chunk_type).unwrap().as_bytes()
-        };
+        if let Ok(bytes) = file.read_to_end(&mut buffer) {
+            bytes_read = bytes;
 
-        // if a file with the given name does not contain a valid PNG structure, do I need to overwrite it all?
-        if let Some(output_file) = &self.output_file {
-            File::create(output_file)
-                .unwrap()
-                .write_all(&png.as_bytes())
-                .unwrap();
-        } else {
-            if bytes_read == 0 {
-                file.write_all(&png.as_bytes()).unwrap();
-            } else {
-                file.write_all(&png.chunk_by_type(&self.chunk_type).unwrap().as_bytes())
-                    .unwrap();
+            if let Ok(mut png) = Png::try_from(&buffer[..]) {
+                png.append_chunk(chunk);
+                return (png, bytes_read);
             }
         }
 
-        Ok(())
+        (Png::from_chunks(vec![chunk]), bytes_read)
     }
 }
 
