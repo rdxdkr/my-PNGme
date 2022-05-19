@@ -419,6 +419,25 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_remove_deletes_file_after_removing_last_chunk() {
+        create_file(FILE_NAME);
+
+        let buffer = testing_png_simple().as_bytes();
+
+        File::options().write(true).open(FILE_NAME).unwrap().write_all(&buffer[..]).unwrap();
+
+        let args = parse_args(&[REMOVE, FILE_NAME, "FrSt"]).unwrap();
+
+        if let CommandType::Remove(remove_args) = args.command_type {
+            remove_args.remove().unwrap();
+
+            let file = File::options().write(true).open(FILE_NAME);
+
+            assert!(file.is_err());
+        }
+    }
+
     fn create_file(file_name: &str) {
         File::create(file_name).unwrap();
     }
