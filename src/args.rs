@@ -140,18 +140,21 @@ impl DecodeArgs {
 
 impl RemoveArgs {
     fn remove(&self) -> Result<Chunk> {
-        let mut file = File::options()
-            .read(true)
-            .write(true)
-            .open(&self.file_path)
-            .unwrap();
+        let mut file = File::options().read(true).open(&self.file_path).unwrap();
         let mut buffer = Vec::<u8>::new();
 
         file.read_to_end(&mut buffer).unwrap();
 
         let mut png = Png::try_from(&buffer[..]).unwrap();
+        let removed_chunk = png.remove_chunk(&self.chunk_type);
 
-        png.remove_chunk(&self.chunk_type)
+        if removed_chunk.is_ok() {
+            let mut file = File::create(&self.file_path).unwrap();
+
+            file.write_all(&png.as_bytes()[..]).unwrap();
+        }
+
+        removed_chunk
     }
 }
 
@@ -406,7 +409,8 @@ mod tests {
             let mut png = testing_png_full();
             let test_chunk = chunk_from_strings("FrSt", "I am the first chunk").unwrap();
 
-            png.remove_chunk(&test_chunk.chunk_type().to_string()).unwrap();
+            png.remove_chunk(&test_chunk.chunk_type().to_string())
+                .unwrap();
 
             let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
 

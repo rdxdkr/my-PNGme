@@ -9,7 +9,7 @@ pub struct Png {
 struct InvalidHeaderError;
 
 #[derive(Debug)]
-struct ChunkNotFoundError;
+pub struct ChunkNotFoundError;
 
 impl Png {
     const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
@@ -40,7 +40,7 @@ impl Png {
         self.chunks.push(chunk);
     }
 
-    fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
+    pub fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
         if let Some(index) = self
             .chunks
             .iter()
