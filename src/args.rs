@@ -182,6 +182,7 @@ mod tests {
 
     const FILE_NAME: &str = "test.png";
     const OUTPUT_NAME: &str = "output.png";
+    const INVALID_FILE_NAME: &str = "invalid_png";
     const ENCODE: &str = "encode";
     const DECODE: &str = "decode";
     const REMOVE: &str = "remove";
@@ -360,9 +361,8 @@ mod tests {
 
     #[test]
     fn test_decode_invalid_file() {
-        const INVALID_FILE_NAME: &str = "invalid_png";
+        File::create(INVALID_FILE_NAME).unwrap();
 
-        let file = File::create(INVALID_FILE_NAME).unwrap();
         let args = parse_args(&[DECODE, INVALID_FILE_NAME, "FrSt"]).unwrap();
 
         if let CommandType::Decode(decode_args) = args.command_type {
