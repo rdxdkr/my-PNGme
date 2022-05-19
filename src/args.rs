@@ -301,6 +301,17 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_decode_non_existing_file() {
+        let args = parse_args(&[DECODE, FILE_NAME, "FrSt"]).unwrap();
+
+        if let CommandType::Decode(decode_args) = args.command_type {
+            let message = decode_args.decode();
+
+            assert!(message.is_err());
+        }
+    }
+
     fn create_file(file_name: &str) {
         File::create(file_name).unwrap();
     }
