@@ -436,6 +436,20 @@ mod tests {
     }
 
     #[test]
+    fn test_remove_invalid_file() {
+        File::create(INVALID_FILE_NAME).unwrap();
+        
+        let args = parse_args(&[REMOVE, INVALID_FILE_NAME, "FrSt"]).unwrap();
+
+        if let CommandType::Remove(remove_args) = args.command_type {
+            let removed_chunk = remove_args.remove();
+
+            assert!(removed_chunk.is_err());
+            delete_file(INVALID_FILE_NAME);
+        }
+    }
+
+    #[test]
     fn test_remove_deletes_file_after_removing_last_chunk() {
         create_file(FILE_NAME);
 
