@@ -145,7 +145,7 @@ impl RemoveArgs {
 
         file.read_to_end(&mut buffer).unwrap();
 
-        let mut png = Png::try_from(&buffer[..]).unwrap();
+        let mut png = Png::try_from(&buffer[..])?;
         let removed_chunk = png.remove_chunk(&self.chunk_type);
 
         if png.chunks().is_empty() {
