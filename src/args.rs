@@ -140,7 +140,7 @@ impl DecodeArgs {
 
 impl RemoveArgs {
     fn remove(&self) -> Result<Chunk> {
-        let mut file = File::options().read(true).open(&self.file_path).unwrap();
+        let mut file = File::options().read(true).open(&self.file_path)?;
         let mut buffer = Vec::<u8>::new();
 
         file.read_to_end(&mut buffer).unwrap();
