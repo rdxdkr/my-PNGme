@@ -394,6 +394,27 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_remove_does_modify_input_file() {
+        prepare_file(FILE_NAME);
+
+        let args = parse_args(&[REMOVE, FILE_NAME, "FrSt"]).unwrap();
+
+        if let CommandType::Remove(remove_args) = args.command_type {
+            remove_args.remove().unwrap();
+
+            let mut png = testing_png_full();
+            let test_chunk = chunk_from_strings("FrSt", "I am the first chunk").unwrap();
+
+            png.remove_chunk(&test_chunk.chunk_type().to_string()).unwrap();
+
+            let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
+
+            assert_eq!(png.as_bytes(), png_from_file.as_bytes());
+            delete_file(FILE_NAME);
+        }
+    }
+
     fn create_file(file_name: &str) {
         File::create(file_name).unwrap();
     }
