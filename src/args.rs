@@ -112,7 +112,7 @@ impl DecodeArgs {
         
         file.read_to_end(&mut buffer).unwrap();
 
-        let png = Png::try_from(&buffer[..]).unwrap();
+        let png = Png::try_from(&buffer[..])?;
 
         png.chunk_by_type(&self.chunk_type).unwrap().data_as_string()
     }
