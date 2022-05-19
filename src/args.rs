@@ -55,7 +55,13 @@ pub struct DecodeArgs {
 }
 
 #[derive(Debug, Args)]
-pub struct RemoveArgs {}
+pub struct RemoveArgs {
+    /// The path of the PNG file
+    pub file_path: String,
+
+    /// The type of PNG chunk to remove
+    pub chunk_type: String,
+}
 
 impl EncodeArgs {
     fn encode(&self) -> Result<()> {
@@ -134,7 +140,18 @@ impl DecodeArgs {
 
 impl RemoveArgs {
     fn remove(&self) -> Result<Chunk> {
-        todo!()
+        let mut file = File::options()
+            .read(true)
+            .write(true)
+            .open(&self.file_path)
+            .unwrap();
+        let mut buffer = Vec::<u8>::new();
+
+        file.read_to_end(&mut buffer).unwrap();
+
+        let mut png = Png::try_from(&buffer[..]).unwrap();
+
+        png.remove_chunk(&self.chunk_type)
     }
 }
 
