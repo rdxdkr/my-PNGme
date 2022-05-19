@@ -327,6 +327,20 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_decode_valid_file_without_required_chunk() {
+        prepare_file(FILE_NAME);
+
+        let args = parse_args(&[DECODE, FILE_NAME, "TeSt"]).unwrap();
+
+        if let CommandType::Decode(decode_args) = args.command_type {
+            let message = decode_args.decode();
+
+            assert!(message.is_err());
+            delete_file(FILE_NAME);
+        }
+    }
+
     fn create_file(file_name: &str) {
         File::create(file_name).unwrap();
     }
