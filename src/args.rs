@@ -425,6 +425,17 @@ mod tests {
     }
 
     #[test]
+    fn test_remove_non_existing_file() {
+        let args = parse_args(&[REMOVE, FILE_NAME, "FrSt"]).unwrap();
+
+        if let CommandType::Remove(remove_args) = args.command_type {
+            let removed_chunk = remove_args.remove();
+
+            assert!(removed_chunk.is_err());
+        }
+    }
+
+    #[test]
     fn test_remove_deletes_file_after_removing_last_chunk() {
         create_file(FILE_NAME);
 
