@@ -312,6 +312,21 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_decode_invalid_file() {
+        const INVALID_FILE_NAME: &str = "invalid_png";
+
+        let file = File::create(INVALID_FILE_NAME).unwrap();
+        let args = parse_args(&[DECODE, INVALID_FILE_NAME, "FrSt"]).unwrap();
+
+        if let CommandType::Decode(decode_args) = args.command_type {
+            let message = decode_args.decode();
+
+            assert!(message.is_err());
+            delete_file(INVALID_FILE_NAME);
+        }
+    }
+
     fn create_file(file_name: &str) {
         File::create(file_name).unwrap();
     }
