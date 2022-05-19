@@ -38,7 +38,13 @@ pub struct EncodeArgs {
 }
 
 #[derive(Debug, Args)]
-pub struct DecodeArgs {}
+pub struct DecodeArgs {
+    /// The path of the PNG file
+    pub file_path: String,
+
+    /// The type of PNG chunk to decode
+    pub chunk_type: String,
+}
 
 impl EncodeArgs {
     fn encode(&self) -> Result<()> {
@@ -101,7 +107,14 @@ impl EncodeArgs {
 
 impl DecodeArgs {
     fn decode(&self) -> Result<String> {
-        todo!()
+        let mut file = File::open(&self.file_path).unwrap();
+        let mut buffer = Vec::<u8>::new();
+        
+        file.read_to_end(&mut buffer).unwrap();
+
+        let png = Png::try_from(&buffer[..]).unwrap();
+
+        png.chunk_by_type(&self.chunk_type).unwrap().data_as_string()
     }
 }
 
