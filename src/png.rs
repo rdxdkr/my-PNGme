@@ -22,7 +22,7 @@ impl Png {
         Png { chunks }
     }
 
-    fn chunks(&self) -> &[Chunk] {
+    pub fn chunks(&self) -> &[Chunk] {
         &self.chunks
     }
 

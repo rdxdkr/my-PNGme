@@ -6,7 +6,7 @@ use crate::{
 };
 use clap::{Args, Parser, Subcommand};
 use std::{
-    fs::File,
+    fs::{File, self},
     io::{Read, Write},
     str::FromStr,
 };
@@ -147,6 +147,11 @@ impl RemoveArgs {
 
         let mut png = Png::try_from(&buffer[..]).unwrap();
         let removed_chunk = png.remove_chunk(&self.chunk_type);
+
+        if png.chunks().is_empty() {
+            fs::remove_file(&self.file_path).unwrap();
+            return removed_chunk;
+        }
 
         if removed_chunk.is_ok() {
             let mut file = File::create(&self.file_path).unwrap();
