@@ -283,6 +283,24 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_decode_does_not_modify_input_file() {
+        prepare_file(FILE_NAME);
+
+        let args = parse_args(&[DECODE, FILE_NAME, "FrSt"]).unwrap();
+
+        if let CommandType::Decode(_) = args.command_type {
+            let png_from_input_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
+
+            assert_eq!(
+                png_from_input_file.as_bytes(),
+                testing_png_full().as_bytes()
+            );
+
+            delete_file(FILE_NAME);
+        }
+    }
+
     fn create_file(file_name: &str) {
         File::create(file_name).unwrap();
     }
