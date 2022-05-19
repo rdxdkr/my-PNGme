@@ -25,6 +25,9 @@ pub enum CommandType {
 
     /// Decode a message from a PNG chunk contained in a file
     Decode(DecodeArgs),
+
+    /// Remove a PNG chunk from a file
+    Remove(RemoveArgs),
 }
 
 #[derive(Debug, Args)]
@@ -50,6 +53,9 @@ pub struct DecodeArgs {
     /// The type of PNG chunk to decode
     pub chunk_type: String,
 }
+
+#[derive(Debug, Args)]
+pub struct RemoveArgs {}
 
 impl EncodeArgs {
     fn encode(&self) -> Result<()> {
@@ -126,6 +132,12 @@ impl DecodeArgs {
     }
 }
 
+impl RemoveArgs {
+    fn remove(&self) -> Result<Chunk> {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -147,6 +159,7 @@ mod tests {
     const OUTPUT_NAME: &str = "output.png";
     const ENCODE: &str = "encode";
     const DECODE: &str = "decode";
+    const REMOVE: &str = "remove";
 
     #[test]
     fn test_encode_new_file() {
@@ -345,6 +358,21 @@ mod tests {
             let message = decode_args.decode();
 
             assert!(message.is_err());
+            delete_file(FILE_NAME);
+        }
+    }
+
+    #[test]
+    fn test_remove_existing_file() {
+        prepare_file(FILE_NAME);
+
+        let args = parse_args(&[REMOVE, FILE_NAME, "FrSt"]).unwrap();
+
+        if let CommandType::Remove(remove_args) = args.command_type {
+            let removed_chunk = remove_args.remove().unwrap();
+            let test_chunk = chunk_from_strings("FrSt", "I am the first chunk").unwrap();
+
+            assert_eq!(removed_chunk.as_bytes(), test_chunk.as_bytes());
             delete_file(FILE_NAME);
         }
     }
