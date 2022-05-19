@@ -1,4 +1,9 @@
-use crate::{chunk::Chunk, chunk_type::ChunkType, png::Png, Result};
+use crate::{
+    chunk::Chunk,
+    chunk_type::ChunkType,
+    png::{ChunkNotFoundError, Png},
+    Result,
+};
 use clap::{Args, Parser, Subcommand};
 use std::{
     fs::File,
@@ -109,12 +114,15 @@ impl DecodeArgs {
     fn decode(&self) -> Result<String> {
         let mut file = File::open(&self.file_path)?;
         let mut buffer = Vec::<u8>::new();
-        
+
         file.read_to_end(&mut buffer).unwrap();
 
         let png = Png::try_from(&buffer[..])?;
 
-        png.chunk_by_type(&self.chunk_type).unwrap().data_as_string()
+        match png.chunk_by_type(&self.chunk_type) {
+            Some(data) => data.data_as_string(),
+            None => Err(Box::new(ChunkNotFoundError)),
+        }
     }
 }
 
@@ -266,7 +274,7 @@ mod tests {
         }
     }
 
-   #[test]
+    #[test]
     fn test_decode_existing_file() {
         prepare_file(FILE_NAME);
 
