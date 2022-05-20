@@ -73,7 +73,7 @@ pub struct PrintArgs {
 }
 
 impl EncodeArgs {
-    fn encode(&self) -> Result<()> {
+    pub fn encode(&self) -> Result<()> {
         let mut file = Self::prepare_file(&self.file_path);
         let chunk = Self::prepare_chunk(&self.chunk_type, &self.message);
         let (png, bytes_read) = Self::prepare_png(&mut file, chunk);
@@ -132,7 +132,7 @@ impl EncodeArgs {
 }
 
 impl DecodeArgs {
-    fn decode(&self) -> Result<String> {
+    pub fn decode(&self) -> Result<String> {
         let mut file = File::open(&self.file_path)?;
         let mut buffer = Vec::<u8>::new();
 
@@ -148,7 +148,7 @@ impl DecodeArgs {
 }
 
 impl RemoveArgs {
-    fn remove(&self) -> Result<Chunk> {
+    pub fn remove(&self) -> Result<Chunk> {
         let mut file = File::options().read(true).open(&self.file_path)?;
         let mut buffer = Vec::<u8>::new();
 
@@ -173,7 +173,7 @@ impl RemoveArgs {
 }
 
 impl PrintArgs {
-    fn print(&self) -> Result<String> {
+    pub fn print(&self) -> Result<String> {
         let mut file = File::open(&self.file_path)?;
         let mut buffer = Vec::<u8>::new();
 

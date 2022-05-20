@@ -132,7 +132,7 @@ impl TryFrom<&[u8]> for Chunk {
 
             that caused the Png::test_png_from_image_file test to fail in the first place, which
             led to the senseless introduction of unsafe just to sweep the issue under the carpet
-            
+
             only, the issue has come back to bite me again in the most painful of ways because real
             PNG files always contain some bytes which are not valid ASCII characters
         */

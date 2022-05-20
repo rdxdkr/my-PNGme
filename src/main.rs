@@ -1,4 +1,4 @@
-use args::PngMeArgs;
+use args::{CommandType, PngMeArgs};
 use clap::Parser;
 use std::{error, result};
 
@@ -11,8 +11,24 @@ pub type Error = Box<dyn error::Error>;
 pub type Result<T> = result::Result<T, Error>;
 
 fn main() -> Result<()> {
-    let args = PngMeArgs::parse();
+    match PngMeArgs::parse().command_type {
+        CommandType::Encode(encode_args) => match encode_args.encode() {
+            Ok(_) => println!("Encoding successful"),
+            Err(e) => eprintln!("{e}"),
+        },
+        CommandType::Decode(decode_args) => match decode_args.decode() {
+            Ok(s) => println!("Decoded: {s}"),
+            Err(e) => eprintln!("{e}"),
+        },
+        CommandType::Remove(remove_args) => match remove_args.remove() {
+            Ok(c) => println!("Removed: {c}"),
+            Err(e) => eprintln!("{e}"),
+        },
+        CommandType::Print(print_args) => match print_args.print() {
+            Ok(p) => println!("PNG: {p}"),
+            Err(e) => eprintln!("{e}"),
+        },
+    }
 
-    dbg!(args);
     Ok(())
 }
