@@ -67,7 +67,10 @@ pub struct RemoveArgs {
 }
 
 #[derive(Debug, Args)]
-pub struct PrintArgs {}
+pub struct PrintArgs {
+    /// The path of the PNG file
+    pub file_path: String,
+}
 
 impl EncodeArgs {
     fn encode(&self) -> Result<()> {
@@ -171,7 +174,11 @@ impl RemoveArgs {
 
 impl PrintArgs {
     fn print(&self) -> Result<String> {
-        todo!()
+        let mut file = File::open(&self.file_path).unwrap();
+        let mut buffer = Vec::<u8>::new();
+
+        file.read_to_end(&mut buffer).unwrap();
+        Ok(Png::try_from(&buffer[..]).unwrap().to_string())
     }
 }
 
