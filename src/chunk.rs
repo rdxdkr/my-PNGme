@@ -61,7 +61,7 @@ impl Chunk {
             .collect::<Vec<u8>>()
     }
 
-    fn calculate_crc(chunk_type: &ChunkType, data: &Vec<u8>) -> u32 {
+    fn calculate_crc(chunk_type: &ChunkType, data: &[u8]) -> u32 {
         /*
             from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-layout
 

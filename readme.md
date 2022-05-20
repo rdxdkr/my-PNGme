@@ -24,11 +24,11 @@ The bare minimum workaround to avoid mixing up the content of the files is to ru
 cargo test -- --test-threads=1
 ```
 
-However, there seem to be better and cleaner ways which don't even need to meddle with the execution performance. So far I've found the following ones.
+Nonetheless, there seem to be better and cleaner ways which don't even need to meddle with the execution performance. So far I've found the following ones.
 
 ### • Checking if the required file already exists
 
-At the start of each test, call a function that checks if there's an already existing file with the name that would be used by that test soon after. If there is, it's probably a leftover from other tests that have failed or panicked, so it can either be deleted and recreated, or its content can be wiped clean.
+At the start of each test, call a function that checks if there's an already existing file with the name that would be used by that test soon after. If there is, it's probably a leftover from other tests that have failed or panicked, so it can either be deleted and recreated, or its content can be wiped clean. This, however, still requires to run the tests sequentially.
 
 ### • Wrapping the files to control their deletion
 

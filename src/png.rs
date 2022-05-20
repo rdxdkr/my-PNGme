@@ -54,7 +54,7 @@ impl Png {
 
     pub fn as_bytes(&self) -> Vec<u8> {
         let chunks_as_bytes = (&self.chunks)
-            .into_iter()
+            .iter()
             .flat_map(|chunk| chunk.as_bytes())
             .collect::<Vec<u8>>();
 

@@ -381,7 +381,7 @@ mod tests {
 
     #[test]
     fn test_decode_invalid_file() {
-        File::create(INVALID_FILE_NAME).unwrap();
+        create_file(INVALID_FILE_NAME);
 
         let args = parse_args(&[DECODE, INVALID_FILE_NAME, "FrSt"]).unwrap();
 
@@ -457,7 +457,7 @@ mod tests {
 
     #[test]
     fn test_remove_invalid_file() {
-        File::create(INVALID_FILE_NAME).unwrap();
+        create_file(INVALID_FILE_NAME);
 
         let args = parse_args(&[REMOVE, INVALID_FILE_NAME, "FrSt"]).unwrap();
 
@@ -536,7 +536,7 @@ mod tests {
 
     #[test]
     fn test_print_invalid_file() {
-        File::create(INVALID_FILE_NAME).unwrap();
+        create_file(INVALID_FILE_NAME);
 
         let args = parse_args(&[PRINT, INVALID_FILE_NAME]).unwrap();
 
