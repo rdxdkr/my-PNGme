@@ -457,8 +457,10 @@ mod tests {
 
         if let CommandType::Remove(remove_args) = args.command_type {
             let removed_chunk = remove_args.remove();
+            let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
 
             assert!(removed_chunk.is_err());
+            assert_eq!(png_from_file.as_bytes(), testing_png_full().as_bytes());
             delete_file(FILE_NAME);
         }
     }
