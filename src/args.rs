@@ -523,6 +523,17 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_print_non_existing_file() {
+        let args = parse_args(&[PRINT, FILE_NAME]).unwrap();
+
+        if let CommandType::Print(print_args) = args.command_type {
+            let png = print_args.print();
+
+            assert!(png.is_err());
+        }
+    }
+
     fn create_file(file_name: &str) {
         File::create(file_name).unwrap();
     }
