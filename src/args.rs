@@ -534,6 +534,20 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_print_invalid_file() {
+        File::create(INVALID_FILE_NAME).unwrap();
+
+        let args = parse_args(&[PRINT, INVALID_FILE_NAME]).unwrap();
+
+        if let CommandType::Print(print_args) = args.command_type {
+            let png = print_args.print();
+
+            assert!(png.is_err());
+            delete_file(INVALID_FILE_NAME);
+        }
+    }
+
     fn create_file(file_name: &str) {
         File::create(file_name).unwrap();
     }
