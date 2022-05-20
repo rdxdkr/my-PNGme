@@ -12,7 +12,7 @@ Since many unit tests are already provided, I've decided to follow a proper Test
 
 **Chapter 3: Done**
 
-Chapter 4: In progress
+**Chapter 4: Done**
 
 ## Future improvements
 
