@@ -178,7 +178,7 @@ impl PrintArgs {
         let mut buffer = Vec::<u8>::new();
 
         file.read_to_end(&mut buffer).unwrap();
-        Ok(Png::try_from(&buffer[..]).unwrap().to_string())
+        Ok(Png::try_from(&buffer[..])?.to_string())
     }
 }
 
