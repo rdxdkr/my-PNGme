@@ -6,7 +6,7 @@ use crate::{
 };
 use clap::{Args, Parser, Subcommand};
 use std::{
-    fs::{File, self},
+    fs::{self, File},
     io::{Read, Write},
     str::FromStr,
 };
@@ -28,6 +28,9 @@ pub enum CommandType {
 
     /// Remove a PNG chunk from a file
     Remove(RemoveArgs),
+
+    /// Print the chunks of a PNG file
+    Print(PrintArgs),
 }
 
 #[derive(Debug, Args)]
@@ -62,6 +65,9 @@ pub struct RemoveArgs {
     /// The type of PNG chunk to remove
     pub chunk_type: String,
 }
+
+#[derive(Debug, Args)]
+pub struct PrintArgs {}
 
 impl EncodeArgs {
     fn encode(&self) -> Result<()> {
@@ -163,6 +169,12 @@ impl RemoveArgs {
     }
 }
 
+impl PrintArgs {
+    fn print(&self) -> Result<String> {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -186,6 +198,7 @@ mod tests {
     const ENCODE: &str = "encode";
     const DECODE: &str = "decode";
     const REMOVE: &str = "remove";
+    const PRINT: &str = "print";
 
     #[test]
     fn test_encode_new_file() {
@@ -438,7 +451,7 @@ mod tests {
     #[test]
     fn test_remove_invalid_file() {
         File::create(INVALID_FILE_NAME).unwrap();
-        
+
         let args = parse_args(&[REMOVE, INVALID_FILE_NAME, "FrSt"]).unwrap();
 
         if let CommandType::Remove(remove_args) = args.command_type {
@@ -471,7 +484,12 @@ mod tests {
 
         let buffer = testing_png_simple().as_bytes();
 
-        File::options().write(true).open(FILE_NAME).unwrap().write_all(&buffer[..]).unwrap();
+        File::options()
+            .write(true)
+            .open(FILE_NAME)
+            .unwrap()
+            .write_all(&buffer[..])
+            .unwrap();
 
         let args = parse_args(&[REMOVE, FILE_NAME, "FrSt"]).unwrap();
 
@@ -481,6 +499,20 @@ mod tests {
             let file = File::options().write(true).open(FILE_NAME);
 
             assert!(file.is_err());
+        }
+    }
+
+    #[test]
+    fn test_print_existing_file() {
+        prepare_file(FILE_NAME);
+
+        let args = parse_args(&[PRINT, FILE_NAME]).unwrap();
+
+        if let CommandType::Print(print_args) = args.command_type {
+            let png = print_args.print().unwrap();
+
+            assert_eq!(png, testing_png_full().to_string());
+            delete_file(FILE_NAME);
         }
     }
 
