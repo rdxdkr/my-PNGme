@@ -344,8 +344,6 @@ mod tests {
 
             assert!(message.is_ok());
             assert_eq!(message.unwrap(), "I am the first chunk");
-
-            // SPOSTARE FUORI TUTTI I DELETE FILE ANCHE SOPRA
             delete_file(FILE_NAME);
         }
     }
