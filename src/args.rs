@@ -202,7 +202,6 @@ mod tests {
     const OUTPUT_NAME: &str = "output.png";
     const INVALID_FILE_NAME: &str = "invalid.png";
     const ENCODE: &str = "encode";
-    const DECODE: &str = "decode";
 
     #[test]
     fn test_encode_new_file() {
@@ -334,71 +333,69 @@ mod tests {
     fn test_decode_existing_file() {
         prepare_file(FILE_NAME);
 
-        let args = parse_args(&[DECODE, FILE_NAME, "FrSt"]).unwrap();
+        let decode_args = DecodeArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("FrSt"),
+        };
 
-        if let CommandType::Decode(decode_args) = args.command_type {
-            let message = decode_args.decode();
-
-            assert!(message.is_ok());
-            assert_eq!(message.unwrap(), "I am the first chunk");
-            fs::remove_file(FILE_NAME).unwrap();
-        }
+        assert_eq!(decode_args.decode().unwrap(), "I am the first chunk");
+        fs::remove_file(FILE_NAME).unwrap();
     }
 
     #[test]
     fn test_decode_does_not_modify_input_file() {
         prepare_file(FILE_NAME);
 
-        let args = parse_args(&[DECODE, FILE_NAME, "FrSt"]).unwrap();
-
-        if let CommandType::Decode(_) = args.command_type {
-            let png_from_input_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
-
-            assert_eq!(
-                png_from_input_file.as_bytes(),
-                testing_png_full().as_bytes()
-            );
-            fs::remove_file(FILE_NAME).unwrap();
+        DecodeArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("FrSt"),
         }
+        .decode()
+        .unwrap();
+
+        let png_from_input_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
+
+        assert_eq!(
+            png_from_input_file.as_bytes(),
+            testing_png_full().as_bytes()
+        );
+        fs::remove_file(FILE_NAME).unwrap();
     }
 
     #[test]
     fn test_decode_non_existing_file() {
-        let args = parse_args(&[DECODE, FILE_NAME, "FrSt"]).unwrap();
+        let decode_args = DecodeArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("FrSt"),
+        };
 
-        if let CommandType::Decode(decode_args) = args.command_type {
-            let message = decode_args.decode();
-
-            assert!(message.is_err());
-        }
+        assert!(decode_args.decode().is_err());
     }
 
     #[test]
     fn test_decode_invalid_file() {
         File::create(INVALID_FILE_NAME).unwrap();
 
-        let args = parse_args(&[DECODE, INVALID_FILE_NAME, "FrSt"]).unwrap();
+        let decode_args = DecodeArgs {
+            file_path: String::from(INVALID_FILE_NAME),
+            chunk_type: String::from("FrSt"),
+        };
 
-        if let CommandType::Decode(decode_args) = args.command_type {
-            let message = decode_args.decode();
-
-            assert!(message.is_err());
-            fs::remove_file(INVALID_FILE_NAME).unwrap();
-        }
+        assert!(decode_args.decode().is_err());
+        fs::remove_file(INVALID_FILE_NAME).unwrap();
     }
 
     #[test]
     fn test_decode_valid_file_without_required_chunk() {
         prepare_file(FILE_NAME);
 
-        let args = parse_args(&[DECODE, FILE_NAME, "TeSt"]).unwrap();
+        let decode_args = DecodeArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("TeSt"),
+        };
 
-        if let CommandType::Decode(decode_args) = args.command_type {
-            let message = decode_args.decode();
-
-            assert!(message.is_err());
-            fs::remove_file(FILE_NAME).unwrap();
-        }
+        assert!(decode_args.decode().is_err());
+        fs::remove_file(FILE_NAME).unwrap();
     }
 
     #[test]
