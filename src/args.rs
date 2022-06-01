@@ -208,7 +208,7 @@ mod tests {
 
     #[test]
     fn test_encode_new_file() {
-        create_file(FILE_NAME);
+        File::create(FILE_NAME).unwrap();
 
         let args = parse_args(&[ENCODE, FILE_NAME, "FrSt", "I am the first chunk"]).unwrap();
 
@@ -269,7 +269,7 @@ mod tests {
 
     #[test]
     fn test_encode_new_file_with_separate_output() {
-        create_file(FILE_NAME);
+        File::create(FILE_NAME).unwrap();
 
         let args = parse_args(&[
             ENCODE,
@@ -378,7 +378,7 @@ mod tests {
 
     #[test]
     fn test_decode_invalid_file() {
-        create_file(INVALID_FILE_NAME);
+        File::create(INVALID_FILE_NAME).unwrap();
 
         let args = parse_args(&[DECODE, INVALID_FILE_NAME, "FrSt"]).unwrap();
 
@@ -454,7 +454,7 @@ mod tests {
 
     #[test]
     fn test_remove_invalid_file() {
-        create_file(INVALID_FILE_NAME);
+        File::create(INVALID_FILE_NAME).unwrap();
 
         let args = parse_args(&[REMOVE, INVALID_FILE_NAME, "FrSt"]).unwrap();
 
@@ -484,7 +484,7 @@ mod tests {
 
     #[test]
     fn test_remove_deletes_file_after_removing_last_chunk() {
-        create_file(FILE_NAME);
+        File::create(FILE_NAME).unwrap();
         fs::write(FILE_NAME, testing_png_simple().as_bytes()).unwrap();
 
         let args = parse_args(&[REMOVE, FILE_NAME, "FrSt"]).unwrap();
@@ -525,7 +525,7 @@ mod tests {
 
     #[test]
     fn test_print_invalid_file() {
-        create_file(INVALID_FILE_NAME);
+        File::create(INVALID_FILE_NAME).unwrap();
 
         let args = parse_args(&[PRINT, INVALID_FILE_NAME]).unwrap();
 
@@ -535,10 +535,6 @@ mod tests {
             assert!(png.is_err());
             delete_file(INVALID_FILE_NAME);
         }
-    }
-
-    fn create_file(file_name: &str) {
-        File::create(file_name).unwrap();
     }
 
     fn prepare_file(file_name: &str) {
