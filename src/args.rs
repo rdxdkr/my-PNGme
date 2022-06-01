@@ -204,7 +204,6 @@ mod tests {
     const ENCODE: &str = "encode";
     const DECODE: &str = "decode";
     const REMOVE: &str = "remove";
-    const PRINT: &str = "print";
 
     #[test]
     fn test_encode_new_file() {
@@ -501,39 +500,33 @@ mod tests {
     fn test_print_existing_file() {
         prepare_file(FILE_NAME);
 
-        let args = parse_args(&[PRINT, FILE_NAME]).unwrap();
+        let print_args = PrintArgs {
+            file_path: String::from(FILE_NAME),
+        };
 
-        if let CommandType::Print(print_args) = args.command_type {
-            let png = print_args.print().unwrap();
-
-            assert_eq!(png, testing_png_full().to_string());
-            fs::remove_file(FILE_NAME).unwrap();
-        }
+        assert_eq!(print_args.print().unwrap(), testing_png_full().to_string());
+        fs::remove_file(FILE_NAME).unwrap();
     }
 
     #[test]
     fn test_print_non_existing_file() {
-        let args = parse_args(&[PRINT, FILE_NAME]).unwrap();
+        let print_args = PrintArgs {
+            file_path: String::from(FILE_NAME),
+        };
 
-        if let CommandType::Print(print_args) = args.command_type {
-            let png = print_args.print();
-
-            assert!(png.is_err());
-        }
+        assert!(print_args.print().is_err());
     }
 
     #[test]
     fn test_print_invalid_file() {
         File::create(INVALID_FILE_NAME).unwrap();
 
-        let args = parse_args(&[PRINT, INVALID_FILE_NAME]).unwrap();
+        let print_args = PrintArgs {
+            file_path: String::from(INVALID_FILE_NAME),
+        };
 
-        if let CommandType::Print(print_args) = args.command_type {
-            let png = print_args.print();
-
-            assert!(png.is_err());
-            fs::remove_file(INVALID_FILE_NAME).unwrap();
-        }
+        assert!(print_args.print().is_err());
+        fs::remove_file(INVALID_FILE_NAME).unwrap();
     }
 
     fn prepare_file(file_name: &str) {
