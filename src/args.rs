@@ -200,7 +200,7 @@ mod tests {
 
     const FILE_NAME: &str = "test.png";
     const OUTPUT_NAME: &str = "output.png";
-    const INVALID_FILE_NAME: &str = "invalid_png";
+    const INVALID_FILE_NAME: &str = "invalid.png";
     const ENCODE: &str = "encode";
     const DECODE: &str = "decode";
     const REMOVE: &str = "remove";
@@ -240,7 +240,7 @@ mod tests {
     fn test_encode_existing_file() {
         prepare_file(FILE_NAME);
 
-        let new_chunk = test_chunk().unwrap();
+        let new_chunk = testing_chunk().unwrap();
         let args = parse_args(&[
             ENCODE,
             FILE_NAME,
@@ -304,7 +304,7 @@ mod tests {
     fn test_encode_existing_file_with_separate_output() {
         prepare_file(FILE_NAME);
 
-        let new_chunk = test_chunk().unwrap();
+        let new_chunk = testing_chunk().unwrap();
         let args =
             parse_args(&[ENCODE, FILE_NAME, "TeSt", "I am a test chunk", OUTPUT_NAME]).unwrap();
 
@@ -412,9 +412,9 @@ mod tests {
 
         if let CommandType::Remove(remove_args) = args.command_type {
             let removed_chunk = remove_args.remove().unwrap();
-            let test_chunk = chunk_from_strings("FrSt", "I am the first chunk").unwrap();
+            let testing_chunk = chunk_from_strings("FrSt", "I am the first chunk").unwrap();
 
-            assert_eq!(removed_chunk.as_bytes(), test_chunk.as_bytes());
+            assert_eq!(removed_chunk.as_bytes(), testing_chunk.as_bytes());
             delete_file(FILE_NAME);
         }
     }
@@ -429,9 +429,9 @@ mod tests {
             remove_args.remove().unwrap();
 
             let mut png = testing_png_full();
-            let test_chunk = chunk_from_strings("FrSt", "I am the first chunk").unwrap();
+            let testing_chunk = chunk_from_strings("FrSt", "I am the first chunk").unwrap();
 
-            png.remove_chunk(&test_chunk.chunk_type().to_string())
+            png.remove_chunk(&testing_chunk.chunk_type().to_string())
                 .unwrap();
 
             let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
@@ -555,7 +555,7 @@ mod tests {
         PngMeArgs::try_parse_from(std::iter::once("pngme").chain(args.iter().cloned()))
     }
 
-    fn test_chunk() -> Result<Chunk> {
+    fn testing_chunk() -> Result<Chunk> {
         chunk_from_strings("TeSt", "I am a test chunk")
     }
 
