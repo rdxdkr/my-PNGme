@@ -188,7 +188,6 @@ mod tests {
     use crate::{chunk::Chunk, chunk_type::ChunkType, png::Png};
     use std::{
         fs::{self, File},
-        io::Read,
         str::FromStr,
     };
 
@@ -216,7 +215,7 @@ mod tests {
         if let CommandType::Encode(encode_args) = args.command_type {
             encode_args.encode().unwrap();
 
-            let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
+            let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
             assert_eq!(png_from_file.as_bytes(), testing_png_simple().as_bytes());
             delete_file(FILE_NAME);
@@ -230,7 +229,7 @@ mod tests {
         if let CommandType::Encode(encode_args) = args.command_type {
             encode_args.encode().unwrap();
 
-            let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
+            let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
             assert_eq!(png_from_file.as_bytes(), testing_png_simple().as_bytes());
             delete_file(FILE_NAME);
@@ -253,7 +252,7 @@ mod tests {
         if let CommandType::Encode(encode_args) = args.command_type {
             encode_args.encode().unwrap();
 
-            let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
+            let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
             assert_eq!(
                 png_from_file.as_bytes(),
@@ -284,13 +283,13 @@ mod tests {
         if let CommandType::Encode(encode_args) = args.command_type {
             encode_args.encode().unwrap();
 
-            let empty_input_file = read_file(FILE_NAME);
-            let png_from_empty_file = Png::try_from(&read_file(FILE_NAME)[..]);
+            let empty_input_file = fs::read(FILE_NAME).unwrap();
+            let png_from_empty_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]);
 
             assert_eq!(empty_input_file.len(), 0);
             assert!(png_from_empty_file.is_err());
 
-            let png_from_output_file = Png::try_from(&read_file(OUTPUT_NAME)[..]).unwrap();
+            let png_from_output_file = Png::try_from(&fs::read(OUTPUT_NAME).unwrap()[..]).unwrap();
 
             assert_eq!(
                 png_from_output_file.as_bytes(),
@@ -312,8 +311,8 @@ mod tests {
         if let CommandType::Encode(encode_args) = args.command_type {
             encode_args.encode().unwrap();
 
-            let png_from_input_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
-            let png_from_output_file = Png::try_from(&read_file(OUTPUT_NAME)[..]).unwrap();
+            let png_from_input_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
+            let png_from_output_file = Png::try_from(&fs::read(OUTPUT_NAME).unwrap()[..]).unwrap();
 
             assert_eq!(
                 png_from_input_file.as_bytes(),
@@ -355,7 +354,7 @@ mod tests {
         let args = parse_args(&[DECODE, FILE_NAME, "FrSt"]).unwrap();
 
         if let CommandType::Decode(_) = args.command_type {
-            let png_from_input_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
+            let png_from_input_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
             assert_eq!(
                 png_from_input_file.as_bytes(),
@@ -435,7 +434,7 @@ mod tests {
             png.remove_chunk(&test_chunk.chunk_type().to_string())
                 .unwrap();
 
-            let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
+            let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
             assert_eq!(png.as_bytes(), png_from_file.as_bytes());
             delete_file(FILE_NAME);
@@ -475,7 +474,7 @@ mod tests {
 
         if let CommandType::Remove(remove_args) = args.command_type {
             let removed_chunk = remove_args.remove();
-            let png_from_file = Png::try_from(&read_file(FILE_NAME)[..]).unwrap();
+            let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
             assert!(removed_chunk.is_err());
             assert_eq!(png_from_file.as_bytes(), testing_png_full().as_bytes());
@@ -557,14 +556,6 @@ mod tests {
         let mut file = File::options().write(true).open(file_name).unwrap();
 
         file.write_all(&png.as_bytes()).unwrap();
-    }
-
-    fn read_file(file_name: &str) -> Vec<u8> {
-        let mut buffer = Vec::<u8>::new();
-        let mut file = File::open(file_name).unwrap();
-
-        file.read_to_end(&mut buffer).unwrap();
-        buffer
     }
 
     fn delete_file(file_name: &str) {
