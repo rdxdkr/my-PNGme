@@ -149,23 +149,14 @@ impl DecodeArgs {
 
 impl RemoveArgs {
     pub fn remove(&self) -> Result<Chunk> {
-        let mut file = File::options().read(true).open(&self.file_path)?;
-        let mut buffer = Vec::<u8>::new();
-
-        file.read_to_end(&mut buffer).unwrap();
-
+        let buffer = fs::read(&self.file_path)?;
         let mut png = Png::try_from(&buffer[..])?;
         let removed_chunk = png.remove_chunk(&self.chunk_type);
 
         if png.chunks().is_empty() {
             fs::remove_file(&self.file_path).unwrap();
-            return removed_chunk;
-        }
-
-        if removed_chunk.is_ok() {
-            let mut file = File::create(&self.file_path).unwrap();
-
-            file.write_all(&png.as_bytes()[..]).unwrap();
+        } else if removed_chunk.is_ok() {
+            fs::write(&self.file_path, &png.as_bytes()[..]).unwrap();
         }
 
         removed_chunk
