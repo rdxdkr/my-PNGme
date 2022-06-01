@@ -174,10 +174,8 @@ impl RemoveArgs {
 
 impl PrintArgs {
     pub fn print(&self) -> Result<String> {
-        let mut file = File::open(&self.file_path)?;
-        let mut buffer = Vec::<u8>::new();
+        let buffer = fs::read(&self.file_path)?;
 
-        file.read_to_end(&mut buffer).unwrap();
         Ok(Png::try_from(&buffer[..])?.to_string())
     }
 }
