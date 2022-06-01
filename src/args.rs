@@ -201,36 +201,41 @@ mod tests {
     const FILE_NAME: &str = "test.png";
     const OUTPUT_NAME: &str = "output.png";
     const INVALID_FILE_NAME: &str = "invalid.png";
-    const ENCODE: &str = "encode";
 
     #[test]
     fn test_encode_new_file() {
         File::create(FILE_NAME).unwrap();
 
-        let args = parse_args(&[ENCODE, FILE_NAME, "FrSt", "I am the first chunk"]).unwrap();
-
-        if let CommandType::Encode(encode_args) = args.command_type {
-            encode_args.encode().unwrap();
-
-            let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
-
-            assert_eq!(png_from_file.as_bytes(), testing_png_simple().as_bytes());
-            fs::remove_file(FILE_NAME).unwrap();
+        EncodeArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("FrSt"),
+            message: String::from("I am the first chunk"),
+            output_file: None,
         }
+        .encode()
+        .unwrap();
+
+        let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
+
+        assert_eq!(png_from_file.as_bytes(), testing_png_simple().as_bytes());
+        fs::remove_file(FILE_NAME).unwrap();
     }
 
     #[test]
     fn test_encode_creates_new_file_if_not_exists() {
-        let args = parse_args(&[ENCODE, FILE_NAME, "FrSt", "I am the first chunk"]).unwrap();
-
-        if let CommandType::Encode(encode_args) = args.command_type {
-            encode_args.encode().unwrap();
-
-            let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
-
-            assert_eq!(png_from_file.as_bytes(), testing_png_simple().as_bytes());
-            fs::remove_file(FILE_NAME).unwrap();
+        EncodeArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("FrSt"),
+            message: String::from("I am the first chunk"),
+            output_file: None,
         }
+        .encode()
+        .unwrap();
+
+        let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
+
+        assert_eq!(png_from_file.as_bytes(), testing_png_simple().as_bytes());
+        fs::remove_file(FILE_NAME).unwrap();
     }
 
     #[test]
@@ -238,63 +243,53 @@ mod tests {
         prepare_file(FILE_NAME);
 
         let new_chunk = testing_chunk().unwrap();
-        let args = parse_args(&[
-            ENCODE,
-            FILE_NAME,
-            &new_chunk.chunk_type().to_string(),
-            &new_chunk.data_as_string().unwrap(),
-        ])
+
+        EncodeArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: new_chunk.chunk_type().to_string(),
+            message: new_chunk.data_as_string().unwrap(),
+            output_file: None,
+        }
+        .encode()
         .unwrap();
 
-        if let CommandType::Encode(encode_args) = args.command_type {
-            encode_args.encode().unwrap();
+        let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
-            let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
-
-            assert_eq!(
-                png_from_file.as_bytes(),
-                testing_png_full()
-                    .as_bytes()
-                    .iter()
-                    .chain(new_chunk.as_bytes().iter())
-                    .cloned()
-                    .collect::<Vec<u8>>()
-            );
-            fs::remove_file(FILE_NAME).unwrap();
-        }
+        assert_eq!(
+            png_from_file.as_bytes(),
+            testing_png_full()
+                .as_bytes()
+                .iter()
+                .chain(new_chunk.as_bytes().iter())
+                .cloned()
+                .collect::<Vec<u8>>()
+        );
+        fs::remove_file(FILE_NAME).unwrap();
     }
 
     #[test]
     fn test_encode_new_file_with_separate_output() {
         File::create(FILE_NAME).unwrap();
-
-        let args = parse_args(&[
-            ENCODE,
-            FILE_NAME,
-            "FrSt",
-            "I am the first chunk",
-            OUTPUT_NAME,
-        ])
-        .unwrap();
-
-        if let CommandType::Encode(encode_args) = args.command_type {
-            encode_args.encode().unwrap();
-
-            let empty_input_file = fs::read(FILE_NAME).unwrap();
-            let png_from_empty_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]);
-
-            assert_eq!(empty_input_file.len(), 0);
-            assert!(png_from_empty_file.is_err());
-
-            let png_from_output_file = Png::try_from(&fs::read(OUTPUT_NAME).unwrap()[..]).unwrap();
-
-            assert_eq!(
-                png_from_output_file.as_bytes(),
-                testing_png_simple().as_bytes()
-            );
-            fs::remove_file(FILE_NAME).unwrap();
-            fs::remove_file(OUTPUT_NAME).unwrap();
+        EncodeArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("FrSt"),
+            message: String::from("I am the first chunk"),
+            output_file: Some(String::from(OUTPUT_NAME)),
         }
+        .encode()
+        .unwrap();
+        assert!(fs::read(FILE_NAME).unwrap().is_empty());
+
+        let png_from_empty_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]);
+        let png_from_output_file = Png::try_from(&fs::read(OUTPUT_NAME).unwrap()[..]).unwrap();
+
+        assert!(png_from_empty_file.is_err());
+        assert_eq!(
+            png_from_output_file.as_bytes(),
+            testing_png_simple().as_bytes()
+        );
+        fs::remove_file(FILE_NAME).unwrap();
+        fs::remove_file(OUTPUT_NAME).unwrap();
     }
 
     #[test]
@@ -302,31 +297,34 @@ mod tests {
         prepare_file(FILE_NAME);
 
         let new_chunk = testing_chunk().unwrap();
-        let args =
-            parse_args(&[ENCODE, FILE_NAME, "TeSt", "I am a test chunk", OUTPUT_NAME]).unwrap();
 
-        if let CommandType::Encode(encode_args) = args.command_type {
-            encode_args.encode().unwrap();
-
-            let png_from_input_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
-            let png_from_output_file = Png::try_from(&fs::read(OUTPUT_NAME).unwrap()[..]).unwrap();
-
-            assert_eq!(
-                png_from_input_file.as_bytes(),
-                testing_png_full().as_bytes()
-            );
-            assert_eq!(
-                png_from_output_file.as_bytes(),
-                testing_png_full()
-                    .as_bytes()
-                    .iter()
-                    .chain(new_chunk.as_bytes().iter())
-                    .cloned()
-                    .collect::<Vec<u8>>()
-            );
-            fs::remove_file(FILE_NAME).unwrap();
-            fs::remove_file(OUTPUT_NAME).unwrap();
+        EncodeArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: new_chunk.chunk_type().to_string(),
+            message: new_chunk.data_as_string().unwrap(),
+            output_file: Some(String::from(OUTPUT_NAME)),
         }
+        .encode()
+        .unwrap();
+
+        let png_from_input_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
+        let png_from_output_file = Png::try_from(&fs::read(OUTPUT_NAME).unwrap()[..]).unwrap();
+
+        assert_eq!(
+            png_from_input_file.as_bytes(),
+            testing_png_full().as_bytes()
+        );
+        assert_eq!(
+            png_from_output_file.as_bytes(),
+            testing_png_full()
+                .as_bytes()
+                .iter()
+                .chain(new_chunk.as_bytes().iter())
+                .cloned()
+                .collect::<Vec<u8>>()
+        );
+        fs::remove_file(FILE_NAME).unwrap();
+        fs::remove_file(OUTPUT_NAME).unwrap();
     }
 
     #[test]
@@ -522,10 +520,6 @@ mod tests {
         let png = testing_png_full();
 
         fs::write(file_name, &png.as_bytes()).unwrap();
-    }
-
-    fn parse_args(args: &[&str]) -> clap::Result<PngMeArgs> {
-        PngMeArgs::try_parse_from(std::iter::once("pngme").chain(args.iter().cloned()))
     }
 
     fn testing_chunk() -> Result<Chunk> {
