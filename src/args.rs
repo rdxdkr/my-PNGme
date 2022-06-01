@@ -133,11 +133,7 @@ impl EncodeArgs {
 
 impl DecodeArgs {
     pub fn decode(&self) -> Result<String> {
-        let mut file = File::open(&self.file_path)?;
-        let mut buffer = Vec::<u8>::new();
-
-        file.read_to_end(&mut buffer).unwrap();
-
+        let buffer = fs::read(&self.file_path)?;
         let png = Png::try_from(&buffer[..])?;
 
         match png.chunk_by_type(&self.chunk_type) {
