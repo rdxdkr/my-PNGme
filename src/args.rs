@@ -485,15 +485,7 @@ mod tests {
     #[test]
     fn test_remove_deletes_file_after_removing_last_chunk() {
         create_file(FILE_NAME);
-
-        let buffer = testing_png_simple().as_bytes();
-
-        File::options()
-            .write(true)
-            .open(FILE_NAME)
-            .unwrap()
-            .write_all(&buffer[..])
-            .unwrap();
+        fs::write(FILE_NAME, testing_png_simple().as_bytes()).unwrap();
 
         let args = parse_args(&[REMOVE, FILE_NAME, "FrSt"]).unwrap();
 
@@ -550,12 +542,9 @@ mod tests {
     }
 
     fn prepare_file(file_name: &str) {
-        create_file(file_name);
-
         let png = testing_png_full();
-        let mut file = File::options().write(true).open(file_name).unwrap();
 
-        file.write_all(&png.as_bytes()).unwrap();
+        fs::write(file_name, &png.as_bytes()).unwrap();
     }
 
     fn delete_file(file_name: &str) {
