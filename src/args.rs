@@ -218,7 +218,7 @@ mod tests {
             let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
             assert_eq!(png_from_file.as_bytes(), testing_png_simple().as_bytes());
-            delete_file(FILE_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
         }
     }
 
@@ -232,7 +232,7 @@ mod tests {
             let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
             assert_eq!(png_from_file.as_bytes(), testing_png_simple().as_bytes());
-            delete_file(FILE_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
         }
     }
 
@@ -263,7 +263,7 @@ mod tests {
                     .cloned()
                     .collect::<Vec<u8>>()
             );
-            delete_file(FILE_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
         }
     }
 
@@ -295,8 +295,8 @@ mod tests {
                 png_from_output_file.as_bytes(),
                 testing_png_simple().as_bytes()
             );
-            delete_file(FILE_NAME);
-            delete_file(OUTPUT_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
+            fs::remove_file(OUTPUT_NAME).unwrap();
         }
     }
 
@@ -327,8 +327,8 @@ mod tests {
                     .cloned()
                     .collect::<Vec<u8>>()
             );
-            delete_file(FILE_NAME);
-            delete_file(OUTPUT_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
+            fs::remove_file(OUTPUT_NAME).unwrap();
         }
     }
 
@@ -343,7 +343,7 @@ mod tests {
 
             assert!(message.is_ok());
             assert_eq!(message.unwrap(), "I am the first chunk");
-            delete_file(FILE_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
         }
     }
 
@@ -360,8 +360,7 @@ mod tests {
                 png_from_input_file.as_bytes(),
                 testing_png_full().as_bytes()
             );
-
-            delete_file(FILE_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
         }
     }
 
@@ -386,7 +385,7 @@ mod tests {
             let message = decode_args.decode();
 
             assert!(message.is_err());
-            delete_file(INVALID_FILE_NAME);
+            fs::remove_file(INVALID_FILE_NAME).unwrap();
         }
     }
 
@@ -400,7 +399,7 @@ mod tests {
             let message = decode_args.decode();
 
             assert!(message.is_err());
-            delete_file(FILE_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
         }
     }
 
@@ -415,7 +414,7 @@ mod tests {
             let testing_chunk = chunk_from_strings("FrSt", "I am the first chunk").unwrap();
 
             assert_eq!(removed_chunk.as_bytes(), testing_chunk.as_bytes());
-            delete_file(FILE_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
         }
     }
 
@@ -437,7 +436,7 @@ mod tests {
             let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
             assert_eq!(png.as_bytes(), png_from_file.as_bytes());
-            delete_file(FILE_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
         }
     }
 
@@ -462,7 +461,7 @@ mod tests {
             let removed_chunk = remove_args.remove();
 
             assert!(removed_chunk.is_err());
-            delete_file(INVALID_FILE_NAME);
+            fs::remove_file(INVALID_FILE_NAME).unwrap();
         }
     }
 
@@ -478,7 +477,7 @@ mod tests {
 
             assert!(removed_chunk.is_err());
             assert_eq!(png_from_file.as_bytes(), testing_png_full().as_bytes());
-            delete_file(FILE_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
         }
     }
 
@@ -508,7 +507,7 @@ mod tests {
             let png = print_args.print().unwrap();
 
             assert_eq!(png, testing_png_full().to_string());
-            delete_file(FILE_NAME);
+            fs::remove_file(FILE_NAME).unwrap();
         }
     }
 
@@ -533,7 +532,7 @@ mod tests {
             let png = print_args.print();
 
             assert!(png.is_err());
-            delete_file(INVALID_FILE_NAME);
+            fs::remove_file(INVALID_FILE_NAME).unwrap();
         }
     }
 
@@ -541,10 +540,6 @@ mod tests {
         let png = testing_png_full();
 
         fs::write(file_name, &png.as_bytes()).unwrap();
-    }
-
-    fn delete_file(file_name: &str) {
-        fs::remove_file(file_name).unwrap();
     }
 
     fn parse_args(args: &[&str]) -> clap::Result<PngMeArgs> {
