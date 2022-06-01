@@ -203,7 +203,6 @@ mod tests {
     const INVALID_FILE_NAME: &str = "invalid.png";
     const ENCODE: &str = "encode";
     const DECODE: &str = "decode";
-    const REMOVE: &str = "remove";
 
     #[test]
     fn test_encode_new_file() {
@@ -406,78 +405,73 @@ mod tests {
     fn test_remove_existing_file() {
         prepare_file(FILE_NAME);
 
-        let args = parse_args(&[REMOVE, FILE_NAME, "FrSt"]).unwrap();
+        let remove_args = RemoveArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("FrSt"),
+        };
+        let removed_chunk = remove_args.remove().unwrap();
+        let testing_chunk = chunk_from_strings("FrSt", "I am the first chunk").unwrap();
 
-        if let CommandType::Remove(remove_args) = args.command_type {
-            let removed_chunk = remove_args.remove().unwrap();
-            let testing_chunk = chunk_from_strings("FrSt", "I am the first chunk").unwrap();
-
-            assert_eq!(removed_chunk.as_bytes(), testing_chunk.as_bytes());
-            fs::remove_file(FILE_NAME).unwrap();
-        }
+        assert_eq!(removed_chunk.as_bytes(), testing_chunk.as_bytes());
+        fs::remove_file(FILE_NAME).unwrap();
     }
 
     #[test]
     fn test_remove_does_modify_input_file() {
         prepare_file(FILE_NAME);
 
-        let args = parse_args(&[REMOVE, FILE_NAME, "FrSt"]).unwrap();
+        let remove_args = RemoveArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("FrSt"),
+        };
+        let mut png = testing_png_full();
 
-        if let CommandType::Remove(remove_args) = args.command_type {
-            remove_args.remove().unwrap();
+        remove_args.remove().unwrap();
+        png.remove_chunk("FrSt").unwrap();
 
-            let mut png = testing_png_full();
-            let testing_chunk = chunk_from_strings("FrSt", "I am the first chunk").unwrap();
+        let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
-            png.remove_chunk(&testing_chunk.chunk_type().to_string())
-                .unwrap();
-
-            let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
-
-            assert_eq!(png.as_bytes(), png_from_file.as_bytes());
-            fs::remove_file(FILE_NAME).unwrap();
-        }
+        assert_eq!(png.as_bytes(), png_from_file.as_bytes());
+        fs::remove_file(FILE_NAME).unwrap();
     }
 
     #[test]
     fn test_remove_non_existing_file() {
-        let args = parse_args(&[REMOVE, FILE_NAME, "FrSt"]).unwrap();
+        let remove_args = RemoveArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("FrSt"),
+        };
 
-        if let CommandType::Remove(remove_args) = args.command_type {
-            let removed_chunk = remove_args.remove();
-
-            assert!(removed_chunk.is_err());
-        }
+        assert!(remove_args.remove().is_err());
     }
 
     #[test]
     fn test_remove_invalid_file() {
         File::create(INVALID_FILE_NAME).unwrap();
 
-        let args = parse_args(&[REMOVE, INVALID_FILE_NAME, "FrSt"]).unwrap();
+        let remove_args = RemoveArgs {
+            file_path: String::from(INVALID_FILE_NAME),
+            chunk_type: String::from("FrSt"),
+        };
 
-        if let CommandType::Remove(remove_args) = args.command_type {
-            let removed_chunk = remove_args.remove();
-
-            assert!(removed_chunk.is_err());
-            fs::remove_file(INVALID_FILE_NAME).unwrap();
-        }
+        assert!(remove_args.remove().is_err());
+        fs::remove_file(INVALID_FILE_NAME).unwrap();
     }
 
     #[test]
     fn test_remove_valid_file_without_required_chunk() {
         prepare_file(FILE_NAME);
 
-        let args = parse_args(&[REMOVE, FILE_NAME, "TeSt"]).unwrap();
+        let remove_args = RemoveArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("TeSt"),
+        };
+        let result = remove_args.remove();
+        let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
 
-        if let CommandType::Remove(remove_args) = args.command_type {
-            let removed_chunk = remove_args.remove();
-            let png_from_file = Png::try_from(&fs::read(FILE_NAME).unwrap()[..]).unwrap();
-
-            assert!(removed_chunk.is_err());
-            assert_eq!(png_from_file.as_bytes(), testing_png_full().as_bytes());
-            fs::remove_file(FILE_NAME).unwrap();
-        }
+        assert!(result.is_err());
+        assert_eq!(png_from_file.as_bytes(), testing_png_full().as_bytes());
+        fs::remove_file(FILE_NAME).unwrap();
     }
 
     #[test]
@@ -485,15 +479,13 @@ mod tests {
         File::create(FILE_NAME).unwrap();
         fs::write(FILE_NAME, testing_png_simple().as_bytes()).unwrap();
 
-        let args = parse_args(&[REMOVE, FILE_NAME, "FrSt"]).unwrap();
+        let remove_args = RemoveArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("FrSt"),
+        };
 
-        if let CommandType::Remove(remove_args) = args.command_type {
-            remove_args.remove().unwrap();
-
-            let file = File::options().write(true).open(FILE_NAME);
-
-            assert!(file.is_err());
-        }
+        remove_args.remove().unwrap();
+        assert!(File::open(FILE_NAME).is_err());
     }
 
     #[test]
