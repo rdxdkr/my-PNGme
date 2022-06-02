@@ -1,5 +1,5 @@
 use crate::{chunk::Chunk, Error, Result};
-use std::{error, fmt::Display, str::FromStr};
+use std::{error, fmt::Display};
 
 pub struct Png {
     chunks: Vec<Chunk>,
@@ -135,6 +135,7 @@ impl Display for ChunkNotFoundError {
 mod tests {
     use super::*;
     use crate::{chunk::Chunk, chunk_type::ChunkType, Result};
+    use std::str::FromStr;
 
     #[test]
     fn test_from_chunks() {
