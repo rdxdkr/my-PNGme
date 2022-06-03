@@ -313,6 +313,20 @@ mod tests {
     }
 
     #[test]
+    fn test_encode_chunk_type_too_long() {
+        let result = EncodeArgs {
+            file_path: String::from(FILE_NAME),
+            chunk_type: String::from("abcdefg"),
+            message: String::from("My chunk type is invalid"),
+            output_file: None,
+        }
+        .encode();
+
+        assert!(result.is_err());
+        fs::remove_file(FILE_NAME).unwrap();
+    }
+
+    #[test]
     fn test_decode_existing_file() {
         prepare_file(FILE_NAME);
 
