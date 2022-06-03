@@ -74,8 +74,15 @@ pub struct PrintArgs {
 
 impl EncodeArgs {
     pub fn encode(&self) -> Result<()> {
-        let mut file = Self::prepare_file(&self.file_path);
-        let chunk = Self::prepare_chunk(&self.chunk_type, &self.message)?;
+        let mut file = File::options()
+            .read(true)
+            .append(true)
+            .create(true)
+            .open(&self.file_path)?;
+        let chunk = Chunk::new(
+            ChunkType::from_str(&self.chunk_type)?,
+            self.message.as_bytes().to_vec(),
+        );
         let (png, bytes_read) = Self::prepare_png(&mut file, chunk);
         let buffer = if bytes_read == 0 || self.output_file.is_some() {
             png.as_bytes()
@@ -92,22 +99,6 @@ impl EncodeArgs {
             Ok(_) => Ok(()),
             Err(e) => Err(Box::new(e)),
         }
-    }
-
-    fn prepare_file(file_path: &str) -> File {
-        // if a file with the given name is found, open it, else create a new one
-        if let Ok(file) = File::options().read(true).append(true).open(file_path) {
-            file
-        } else {
-            File::create(file_path).unwrap()
-        }
-    }
-
-    fn prepare_chunk(chunk_type: &str, message: &str) -> Result<Chunk> {
-        Ok(Chunk::new(
-            ChunkType::from_str(chunk_type)?,
-            message.as_bytes().to_vec(),
-        ))
     }
 
     fn prepare_png(file: &mut File, chunk: Chunk) -> (Png, usize) {
