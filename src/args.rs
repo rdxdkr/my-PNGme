@@ -188,7 +188,7 @@ mod tests {
     const INVALID_FILE_NAME: &str = "invalid.png";
 
     #[test]
-    fn test_encode_new_file() {
+    fn test_encode_empty_file() {
         File::create(FILE_NAME).unwrap();
 
         EncodeArgs {
@@ -253,7 +253,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_new_file_with_separate_output() {
+    fn test_encode_empty_file_with_separate_output() {
         File::create(FILE_NAME).unwrap();
         EncodeArgs {
             file_path: String::from(FILE_NAME),
