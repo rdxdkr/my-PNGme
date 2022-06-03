@@ -79,17 +79,18 @@ impl FromStr for ChunkType {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() > 4
+            || s.chars()
+                .any(|c| !c.is_ascii_lowercase() && !c.is_ascii_uppercase())
+        {
+            // the Box is necessary because the Error alias in main.rs was defined to accept trait objects
+            return Err(Box::new(InvalidChunkError));
+        }
+
         let mut bytes = [0u8; 4];
 
         for (i, b) in s.bytes().enumerate() {
-            if b.is_ascii_uppercase() || b.is_ascii_lowercase() {
-                bytes[i] = b;
-            } else {
-                /*
-                    the Box is necessary because the Error alias in main.rs was defined to accept trait objects
-                */
-                return Err(Box::new(InvalidChunkError));
-            }
+            bytes[i] = b;
         }
 
         Ok(Self { bytes })
