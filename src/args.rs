@@ -90,9 +90,10 @@ impl EncodeArgs {
             self.message.as_bytes().to_vec(),
         );
         let mut input_buffer = Vec::<u8>::new();
-        let mut write_file: File;
 
-        return if let Some(output_path) = &self.output_file {
+        input_file.read_to_end(&mut input_buffer)?;
+
+        if let Some(output_path) = &self.output_file {
             // fill buffer according to both input and output
             let mut output_file = File::options()
                 .read(true)
@@ -101,45 +102,20 @@ impl EncodeArgs {
                 .open(output_path)?;
             let mut output_buffer = Vec::<u8>::new();
 
-            input_file.read_to_end(&mut input_buffer)?;
             output_file.read_to_end(&mut output_buffer)?;
-
-            let write_buffer = match (
-                Self::validate_png(&input_buffer),
-                Self::validate_png(&output_buffer),
-            ) {
-                (State::Png, State::Empty) => {
-                    // valid input, empty output
-                    let mut png = Png::try_from(&input_buffer[..])?;
-
-                    write_file = output_file;
-                    png.append_chunk(chunk);
-                    png.as_bytes().to_vec()
-                }
-                (State::Empty, State::Empty) => {
-                    // empty input, empty output
-                    write_file = output_file;
-                    Png::from_chunks(vec![chunk]).as_bytes().to_vec()
-                }
-                (State::Png, State::Png) => todo!(), // valid input, valid output
-                (State::Empty, State::Png) => todo!(), // empty input, valid output
-                (State::Other(e), _) | (_, State::Other(e)) => return Err(e), // invalid input or output
-            };
-
-            write_file.write_all(&write_buffer).map_err(|e| e.into())
+            output_file
+                .write_all(&Self::validate_input_with_output(
+                    &input_buffer,
+                    &output_buffer,
+                    chunk,
+                )?)
+                .map_err(|e| e.into())
         } else {
             // fill buffer only according to input
-            input_file.read_to_end(&mut input_buffer)?;
-            write_file = input_file;
-
-            let write_buffer = match Self::validate_png(&input_buffer) {
-                State::Png => chunk.as_bytes().to_vec(), // valid input
-                State::Empty => Png::from_chunks(vec![chunk]).as_bytes().to_vec(), // empty input
-                State::Other(e) => return Err(e),        // invalid input
-            };
-
-            write_file.write_all(&write_buffer).map_err(|e| e.into())
-        };
+            input_file
+                .write_all(&Self::validate_input(&input_buffer, chunk)?)
+                .map_err(|e| e.into())
+        }
     }
 
     fn validate_png(input_contents: &Vec<u8>) -> State {
@@ -150,6 +126,40 @@ impl EncodeArgs {
                 Ok(_) => State::Png,
                 Err(e) => State::Other(e),
             }
+        }
+    }
+
+    fn validate_input_with_output(
+        input_buffer: &Vec<u8>,
+        output_buffer: &Vec<u8>,
+        chunk: Chunk,
+    ) -> Result<Vec<u8>> {
+        match (
+            Self::validate_png(input_buffer),
+            Self::validate_png(output_buffer),
+        ) {
+            (State::Png, State::Empty) => {
+                // valid input, empty output
+                let mut png = Png::try_from(&input_buffer[..])?;
+
+                png.append_chunk(chunk);
+                Ok(png.as_bytes().to_vec())
+            }
+            (State::Empty, State::Empty) => {
+                // empty input, empty output
+                Ok(Png::from_chunks(vec![chunk]).as_bytes().to_vec())
+            }
+            (State::Png, State::Png) => todo!(), // valid input, valid output
+            (State::Empty, State::Png) => todo!(), // empty input, valid output
+            (State::Other(e), _) | (_, State::Other(e)) => Err(e), // invalid input or output
+        }
+    }
+
+    fn validate_input(input_buffer: &Vec<u8>, chunk: Chunk) -> Result<Vec<u8>> {
+        match Self::validate_png(input_buffer) {
+            State::Png => Ok(chunk.as_bytes().to_vec()), // valid input
+            State::Empty => Ok(Png::from_chunks(vec![chunk]).as_bytes().to_vec()), // empty input
+            State::Other(e) => Err(e),                   // invalid input
         }
     }
 }
