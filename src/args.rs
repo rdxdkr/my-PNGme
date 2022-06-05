@@ -72,7 +72,7 @@ pub struct PrintArgs {
     pub file_path: String,
 }
 
-enum State {
+enum FileState {
     Png,
     Empty,
     Other(Error),
@@ -118,13 +118,13 @@ impl EncodeArgs {
         }
     }
 
-    fn validate_png(input_contents: &Vec<u8>) -> State {
+    fn validate_png(input_contents: &Vec<u8>) -> FileState {
         if input_contents.is_empty() {
-            State::Empty
+            FileState::Empty
         } else {
             match Png::try_from(&input_contents[..]) {
-                Ok(_) => State::Png,
-                Err(e) => State::Other(e),
+                Ok(_) => FileState::Png,
+                Err(e) => FileState::Other(e),
             }
         }
     }
@@ -138,28 +138,28 @@ impl EncodeArgs {
             Self::validate_png(input_buffer),
             Self::validate_png(output_buffer),
         ) {
-            (State::Png, State::Empty) => {
+            (FileState::Png, FileState::Empty) => {
                 // valid input, empty output
                 let mut png = Png::try_from(&input_buffer[..])?;
 
                 png.append_chunk(chunk);
                 Ok(png.as_bytes().to_vec())
             }
-            (State::Empty, State::Empty) => {
+            (FileState::Empty, FileState::Empty) => {
                 // empty input, empty output
                 Ok(Png::from_chunks(vec![chunk]).as_bytes().to_vec())
             }
-            (State::Png, State::Png) => todo!(), // valid input, valid output
-            (State::Empty, State::Png) => todo!(), // empty input, valid output
-            (State::Other(e), _) | (_, State::Other(e)) => Err(e), // invalid input or output
+            (FileState::Png, FileState::Png) => todo!(), // valid input, valid output
+            (FileState::Empty, FileState::Png) => todo!(), // empty input, valid output
+            (FileState::Other(e), _) | (_, FileState::Other(e)) => Err(e), // invalid input or output
         }
     }
 
     fn validate_input(input_buffer: &Vec<u8>, chunk: Chunk) -> Result<Vec<u8>> {
         match Self::validate_png(input_buffer) {
-            State::Png => Ok(chunk.as_bytes().to_vec()), // valid input
-            State::Empty => Ok(Png::from_chunks(vec![chunk]).as_bytes().to_vec()), // empty input
-            State::Other(e) => Err(e),                   // invalid input
+            FileState::Png => Ok(chunk.as_bytes().to_vec()), // valid input
+            FileState::Empty => Ok(Png::from_chunks(vec![chunk]).as_bytes().to_vec()), // empty input
+            FileState::Other(e) => Err(e),                   // invalid input
         }
     }
 }
