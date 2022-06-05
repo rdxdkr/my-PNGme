@@ -2,7 +2,7 @@ use crate::{
     chunk::Chunk,
     chunk_type::ChunkType,
     png::{ChunkNotFoundError, Png},
-    Result,
+    Error, Result,
 };
 use clap::{Args, Parser, Subcommand};
 use std::{
@@ -72,9 +72,15 @@ pub struct PrintArgs {
     pub file_path: String,
 }
 
+enum State {
+    Png,
+    Empty,
+    Other(Error),
+}
+
 impl EncodeArgs {
     pub fn encode(&self) -> Result<()> {
-        let mut file = File::options()
+        let mut input_file = File::options()
             .read(true)
             .append(true)
             .create(true)
@@ -83,42 +89,71 @@ impl EncodeArgs {
             ChunkType::from_str(&self.chunk_type)?,
             self.message.as_bytes().to_vec(),
         );
-        let (png, bytes_read) = Self::prepare_png(&mut file, chunk);
-        let buffer = if bytes_read == 0 || self.output_file.is_some() {
-            png.as_bytes()
+        let mut input_buffer = Vec::<u8>::new();
+        let write_buffer = if let Some(output_path) = &self.output_file {
+            // fill buffer according to both input and output
+            let mut output_file = File::options()
+                .read(true)
+                .write(true)
+                .create(true)
+                .open(output_path)?;
+            let mut output_buffer = Vec::<u8>::new();
+
+            input_file.read_to_end(&mut input_buffer)?;
+            output_file.read_to_end(&mut output_buffer)?;
+            
+            match Self::validate_png(&input_buffer) {
+                State::Png => match Self::validate_png(&output_buffer) {
+                    State::Png => todo!(), // non empty input to non empty output
+                    State::Empty => {
+                        // non empty input to empty output
+                        let mut png = Png::try_from(&input_buffer[..])?;
+
+                        png.append_chunk(chunk);
+                        png.as_bytes().to_vec()
+                    }
+                    State::Other(e) => return Err(e), // invalid input
+                },
+                State::Empty => match Self::validate_png(&output_buffer) {
+                    State::Png => todo!(), // empty input to non empty output
+                    State::Empty => Png::from_chunks(vec![chunk]).as_bytes().to_vec(), // empty input to empty output
+                    State::Other(e) => return Err(e), // invalid output
+                },
+                State::Other(e) => return Err(e), // invalid input
+            }
         } else {
-            png.chunk_by_type(&self.chunk_type).unwrap().as_bytes()
-        };
-        let mut output_file = match &self.output_file {
-            Some(file_name) => File::create(file_name).unwrap(),
-            None => file,
+            // fill buffer only according to input
+            input_file.read_to_end(&mut input_buffer)?;
+
+            match Self::validate_png(&input_buffer) {
+                State::Png => chunk.as_bytes().to_vec(), // valid input
+                State::Empty => Png::from_chunks(vec![chunk]).as_bytes().to_vec(), // empty input
+                State::Other(e) => return Err(e),        // invalid input
+            }
         };
 
-        // if a file with the given name does not contain a valid PNG structure, do I need to overwrite it all?
-        match output_file.write_all(&buffer) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(Box::new(e)),
+
+        if let Some(output_path) = &self.output_file {
+            let mut output_file = File::options()
+                .read(true)
+                .write(true)
+                .create(true)
+                .open(output_path)?;
+            output_file.write_all(&write_buffer).map_err(|e| e.into())
+        } else {
+            input_file.write_all(&write_buffer).map_err(|e| e.into())
         }
     }
 
-    fn prepare_png(file: &mut File, chunk: Chunk) -> (Png, usize) {
-        let mut buffer = Vec::<u8>::new();
-        let mut bytes_read = 0;
-
-        /*
-            if a file with the given name already exists but it's empty,
-            write a full PNG inside it, else append just the new chunk
-        */
-        if let Ok(bytes) = file.read_to_end(&mut buffer) {
-            bytes_read = bytes;
-
-            if let Ok(mut png) = Png::try_from(&buffer[..]) {
-                png.append_chunk(chunk);
-                return (png, bytes_read);
+    fn validate_png(input_contents: &Vec<u8>) -> State {
+        if input_contents.is_empty() {
+            State::Empty
+        } else {
+            match Png::try_from(&input_contents[..]) {
+                Ok(_) => State::Png,
+                Err(e) => State::Other(e),
             }
         }
-
-        (Png::from_chunks(vec![chunk]), bytes_read)
     }
 }
 
