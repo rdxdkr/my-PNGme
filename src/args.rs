@@ -90,7 +90,9 @@ impl EncodeArgs {
             self.message.as_bytes().to_vec(),
         );
         let mut input_buffer = Vec::<u8>::new();
-        let write_buffer = if let Some(output_path) = &self.output_file {
+        let mut write_file: File;
+
+        return if let Some(output_path) = &self.output_file {
             // fill buffer according to both input and output
             let mut output_file = File::options()
                 .read(true)
@@ -101,14 +103,15 @@ impl EncodeArgs {
 
             input_file.read_to_end(&mut input_buffer)?;
             output_file.read_to_end(&mut output_buffer)?;
-            
-            match Self::validate_png(&input_buffer) {
+
+            let write_buffer = match Self::validate_png(&input_buffer) {
                 State::Png => match Self::validate_png(&output_buffer) {
                     State::Png => todo!(), // non empty input to non empty output
                     State::Empty => {
                         // non empty input to empty output
                         let mut png = Png::try_from(&input_buffer[..])?;
 
+                        write_file = output_file;
                         png.append_chunk(chunk);
                         png.as_bytes().to_vec()
                     }
@@ -116,33 +119,29 @@ impl EncodeArgs {
                 },
                 State::Empty => match Self::validate_png(&output_buffer) {
                     State::Png => todo!(), // empty input to non empty output
-                    State::Empty => Png::from_chunks(vec![chunk]).as_bytes().to_vec(), // empty input to empty output
+                    State::Empty => {
+                        // empty input to empty output
+                        write_file = output_file;
+                        Png::from_chunks(vec![chunk]).as_bytes().to_vec()
+                    }
                     State::Other(e) => return Err(e), // invalid output
                 },
                 State::Other(e) => return Err(e), // invalid input
-            }
+            };
+
+            write_file.write_all(&write_buffer).map_err(|e| e.into())
         } else {
             // fill buffer only according to input
             input_file.read_to_end(&mut input_buffer)?;
+            write_file = input_file;
 
-            match Self::validate_png(&input_buffer) {
+            let write_buffer = match Self::validate_png(&input_buffer) {
                 State::Png => chunk.as_bytes().to_vec(), // valid input
                 State::Empty => Png::from_chunks(vec![chunk]).as_bytes().to_vec(), // empty input
                 State::Other(e) => return Err(e),        // invalid input
-            }
+            };
+            write_file.write_all(&write_buffer).map_err(|e| e.into())
         };
-
-
-        if let Some(output_path) = &self.output_file {
-            let mut output_file = File::options()
-                .read(true)
-                .write(true)
-                .create(true)
-                .open(output_path)?;
-            output_file.write_all(&write_buffer).map_err(|e| e.into())
-        } else {
-            input_file.write_all(&write_buffer).map_err(|e| e.into())
-        }
     }
 
     fn validate_png(input_contents: &Vec<u8>) -> State {
