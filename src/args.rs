@@ -104,29 +104,26 @@ impl EncodeArgs {
             input_file.read_to_end(&mut input_buffer)?;
             output_file.read_to_end(&mut output_buffer)?;
 
-            let write_buffer = match Self::validate_png(&input_buffer) {
-                State::Png => match Self::validate_png(&output_buffer) {
-                    State::Png => todo!(), // non empty input to non empty output
-                    State::Empty => {
-                        // non empty input to empty output
-                        let mut png = Png::try_from(&input_buffer[..])?;
+            let write_buffer = match (
+                Self::validate_png(&input_buffer),
+                Self::validate_png(&output_buffer),
+            ) {
+                (State::Png, State::Empty) => {
+                    // valid input, empty output
+                    let mut png = Png::try_from(&input_buffer[..])?;
 
-                        write_file = output_file;
-                        png.append_chunk(chunk);
-                        png.as_bytes().to_vec()
-                    }
-                    State::Other(e) => return Err(e), // invalid input
-                },
-                State::Empty => match Self::validate_png(&output_buffer) {
-                    State::Png => todo!(), // empty input to non empty output
-                    State::Empty => {
-                        // empty input to empty output
-                        write_file = output_file;
-                        Png::from_chunks(vec![chunk]).as_bytes().to_vec()
-                    }
-                    State::Other(e) => return Err(e), // invalid output
-                },
-                State::Other(e) => return Err(e), // invalid input
+                    write_file = output_file;
+                    png.append_chunk(chunk);
+                    png.as_bytes().to_vec()
+                }
+                (State::Empty, State::Empty) => {
+                    // empty input, empty output
+                    write_file = output_file;
+                    Png::from_chunks(vec![chunk]).as_bytes().to_vec()
+                }
+                (State::Png, State::Png) => todo!(), // valid input, valid output
+                (State::Empty, State::Png) => todo!(), // empty input, valid output
+                (State::Other(e), _) | (_, State::Other(e)) => return Err(e), // invalid input or output
             };
 
             write_file.write_all(&write_buffer).map_err(|e| e.into())
@@ -140,6 +137,7 @@ impl EncodeArgs {
                 State::Empty => Png::from_chunks(vec![chunk]).as_bytes().to_vec(), // empty input
                 State::Other(e) => return Err(e),        // invalid input
             };
+
             write_file.write_all(&write_buffer).map_err(|e| e.into())
         };
     }
