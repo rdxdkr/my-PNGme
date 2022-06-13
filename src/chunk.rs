@@ -1,11 +1,10 @@
+use crate::{chunk_type::ChunkType, Error};
 use crc::{Crc, CRC_32_ISO_HDLC};
 use std::{
-    error,
     fmt::Display,
     str::{self, FromStr},
 };
-
-use crate::{chunk_type::ChunkType, Error, Result};
+use thiserror::Error;
 
 pub struct Chunk {
     length: u32,
@@ -14,8 +13,9 @@ pub struct Chunk {
     crc: u32,
 }
 
-#[derive(Debug)]
-struct InvalidCrcError;
+#[derive(Debug, Error)]
+#[error("A valid CRC must match the one that is calculated again upon creating a Chunk")]
+pub struct InvalidCrcError;
 
 impl Chunk {
     pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Self {
@@ -45,7 +45,7 @@ impl Chunk {
         &self.chunk_data
     }
 
-    pub fn data_as_string(&self) -> Result<String> {
+    pub fn data_as_string(&self) -> Result<String, Error> {
         Ok(str::from_utf8(&self.chunk_data).unwrap().to_string())
     }
 
@@ -108,9 +108,9 @@ impl Display for Chunk {
 }
 
 impl TryFrom<&[u8]> for Chunk {
-    type Error = Error;
+    type Error = InvalidCrcError;
 
-    fn try_from(value: &[u8]) -> Result<Self> {
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         /*
             a slice of u8 (byte) interpreted as a png chunk is structured as follows:
             - first 4 bytes: length (n)
@@ -146,7 +146,7 @@ impl TryFrom<&[u8]> for Chunk {
         let crc = Self::calculate_crc(&chunk_type, &chunk_data);
 
         if crc != input_crc {
-            return Err(Box::new(InvalidCrcError));
+            return Err(InvalidCrcError);
         }
 
         Ok(Chunk {
@@ -155,17 +155,6 @@ impl TryFrom<&[u8]> for Chunk {
             chunk_data,
             crc,
         })
-    }
-}
-
-impl error::Error for InvalidCrcError {}
-
-impl Display for InvalidCrcError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "A valid CRC must match the one that is calculated again upon creating a Chunk"
-        )
     }
 }
 
