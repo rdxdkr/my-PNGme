@@ -159,7 +159,7 @@ impl EncodeArgs {
         match Self::validate_png(input_buffer) {
             FileState::Png => Ok(chunk.as_bytes().to_vec()), // valid input
             FileState::Empty => Ok(Png::from_chunks(vec![chunk]).as_bytes().to_vec()), // empty input
-            FileState::Other(e) => Err(e),                   // invalid input
+            FileState::Other(e) => Err(e), // invalid input
         }
     }
 }

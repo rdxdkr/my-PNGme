@@ -1,13 +1,14 @@
-use crate::Error;
-use std::{error, fmt::Display, str, str::FromStr};
+use std::{fmt::Display, str, str::FromStr};
+use thiserror::Error;
 
 #[derive(Debug, PartialEq)]
 pub struct ChunkType {
     bytes: [u8; 4],
 }
 
-#[derive(Debug)]
-struct InvalidChunkError;
+#[derive(Debug, Error)]
+#[error("A valid chunk contains only ASCII uppercase or lowercase letters")]
+pub struct InvalidChunkError;
 
 impl ChunkType {
     pub fn bytes(&self) -> [u8; 4] {
@@ -68,7 +69,7 @@ impl ChunkType {
 }
 
 impl TryFrom<[u8; 4]> for ChunkType {
-    type Error = Error;
+    type Error = InvalidChunkError;
 
     fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
         Ok(Self { bytes: value })
@@ -76,7 +77,7 @@ impl TryFrom<[u8; 4]> for ChunkType {
 }
 
 impl FromStr for ChunkType {
-    type Err = Error;
+    type Err = InvalidChunkError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() > 4
@@ -84,7 +85,7 @@ impl FromStr for ChunkType {
                 .any(|c| !c.is_ascii_lowercase() && !c.is_ascii_uppercase())
         {
             // the Box is necessary because the Error alias in main.rs was defined to accept trait objects
-            return Err(Box::new(InvalidChunkError));
+            return Err(InvalidChunkError);
         }
 
         let mut bytes = [0u8; 4];
@@ -105,20 +106,6 @@ impl Display for ChunkType {
         //write!(f, "{}{}{}{}", self.bytes[0] as char, self.bytes[1] as char, self.bytes[2] as char, self.bytes[3] as char)
 
         write!(f, "{}", str::from_utf8(&self.bytes).unwrap())
-    }
-}
-
-/*
-    our custom error type must implement std::error::Error (and therefore Display) to be returned inside an Err() variant
-*/
-impl error::Error for InvalidChunkError {}
-
-impl Display for InvalidChunkError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "A valid chunk contains only ASCII uppercase or lowercase letters"
-        )
     }
 }
 

@@ -10,3 +10,4 @@ description = "My personal implementation of PNGme by picklenerd"
 [dependencies]
 crc = "3.0.0"
 clap = { version = "3.1.18", features = ["derive"] }
+thiserror = "1.0.31"
