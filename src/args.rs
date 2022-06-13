@@ -124,7 +124,7 @@ impl EncodeArgs {
         } else {
             match Png::try_from(&input_contents[..]) {
                 Ok(_) => FileState::Png,
-                Err(e) => FileState::Other(e),
+                Err(e) => FileState::Other(Box::new(e)),
             }
         }
     }
@@ -188,7 +188,7 @@ impl RemoveArgs {
             fs::write(&self.file_path, &png.as_bytes()[..]).unwrap();
         }
 
-        removed_chunk
+        removed_chunk.map_err(|e| Box::new(e) as Box<dyn crate::error::Error>)
     }
 }
 

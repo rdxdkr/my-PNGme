@@ -1,14 +1,20 @@
-use crate::{chunk::Chunk, Error, Result};
-use std::{error, fmt::Display};
+use crate::chunk::Chunk;
+use std::fmt::Display;
+use thiserror::Error;
 
 pub struct Png {
     chunks: Vec<Chunk>,
 }
 
-#[derive(Debug)]
-struct InvalidHeaderError;
+#[derive(Debug, Error)]
+#[error(
+    "A valid PNG header must match the following sequence of bytes: {:?}",
+    Png::STANDARD_HEADER
+)]
+pub struct InvalidHeaderError;
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[error("The provided chunk is not part of this PNG file")]
 pub struct ChunkNotFoundError;
 
 impl Png {
@@ -40,7 +46,7 @@ impl Png {
         self.chunks.push(chunk);
     }
 
-    pub fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
+    pub fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk, ChunkNotFoundError> {
         if let Some(index) = self
             .chunks
             .iter()
@@ -49,7 +55,7 @@ impl Png {
             return Ok(self.chunks.remove(index));
         }
 
-        Err(Box::new(ChunkNotFoundError))
+        Err(ChunkNotFoundError)
     }
 
     pub fn as_bytes(&self) -> Vec<u8> {
@@ -67,18 +73,18 @@ impl Png {
 }
 
 impl TryFrom<&[u8]> for Png {
-    type Error = Error;
+    type Error = InvalidHeaderError;
 
-    fn try_from(value: &[u8]) -> Result<Self> {
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         if value.len() < 8 {
-            return Err(Box::new(InvalidHeaderError));
+            return Err(InvalidHeaderError);
         }
 
         let mut chunks: Vec<Chunk> = vec![];
         let header = &value[..8];
 
         if header != Self::STANDARD_HEADER {
-            return Err(Box::new(InvalidHeaderError));
+            return Err(InvalidHeaderError);
         }
 
         let mut cursor = 8usize;
@@ -109,25 +115,6 @@ impl Display for Png {
         }
 
         Ok(())
-    }
-}
-
-impl error::Error for InvalidHeaderError {}
-
-impl Display for InvalidHeaderError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "A valid PNG header must match the following sequence of bytes: [137, 80, 78, 71, 13, 10, 26, 10]"
-        )
-    }
-}
-
-impl error::Error for ChunkNotFoundError {}
-
-impl Display for ChunkNotFoundError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "The provided chunk is not part of this PNG file")
     }
 }
 
