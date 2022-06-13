@@ -1,4 +1,5 @@
-use crate::{chunk_type::ChunkType, Error};
+use crate::chunk_type::ChunkType;
+use anyhow::Result;
 use crc::{Crc, CRC_32_ISO_HDLC};
 use std::{
     fmt::Display,
@@ -45,7 +46,7 @@ impl Chunk {
         &self.chunk_data
     }
 
-    pub fn data_as_string(&self) -> Result<String, Error> {
+    pub fn data_as_string(&self) -> Result<String> {
         Ok(str::from_utf8(&self.chunk_data).unwrap().to_string())
     }
 

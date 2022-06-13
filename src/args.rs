@@ -2,8 +2,8 @@ use crate::{
     chunk::Chunk,
     chunk_type::ChunkType,
     png::{ChunkNotFoundError, Png},
-    Error, Result,
 };
+use anyhow::{Error, Result};
 use clap::{Args, Parser, Subcommand};
 use std::{
     fs::{self, File},
@@ -124,7 +124,7 @@ impl EncodeArgs {
         } else {
             match Png::try_from(&input_contents[..]) {
                 Ok(_) => FileState::Png,
-                Err(e) => FileState::Other(Box::new(e)),
+                Err(e) => FileState::Other(Error::from(e)),
             }
         }
     }
@@ -171,7 +171,7 @@ impl DecodeArgs {
 
         match png.chunk_by_type(&self.chunk_type) {
             Some(data) => data.data_as_string(),
-            None => Err(Box::new(ChunkNotFoundError)),
+            None => Err(Error::from(ChunkNotFoundError)),
         }
     }
 }
@@ -188,7 +188,7 @@ impl RemoveArgs {
             fs::write(&self.file_path, &png.as_bytes()[..]).unwrap();
         }
 
-        removed_chunk.map_err(|e| Box::new(e) as Box<dyn crate::error::Error>)
+        removed_chunk.map_err(|e| Error::from(Box::new(e)))
     }
 }
 

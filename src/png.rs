@@ -121,7 +121,8 @@ impl Display for Png {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{chunk::Chunk, chunk_type::ChunkType, Result};
+    use crate::{chunk::Chunk, chunk_type::ChunkType};
+    use anyhow::Result;
     use std::str::FromStr;
 
     #[test]

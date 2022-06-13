@@ -11,3 +11,4 @@ description = "My personal implementation of PNGme by picklenerd"
 crc = "3.0.0"
 clap = { version = "3.1.18", features = ["derive"] }
 thiserror = "1.0.31"
+anyhow = "1.0.57"
