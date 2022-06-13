@@ -84,7 +84,6 @@ impl FromStr for ChunkType {
             || s.chars()
                 .any(|c| !c.is_ascii_lowercase() && !c.is_ascii_uppercase())
         {
-            // the Box is necessary because the Error alias in main.rs was defined to accept trait objects
             return Err(InvalidChunkError);
         }
 
