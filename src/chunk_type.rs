@@ -7,7 +7,7 @@ pub struct ChunkType {
 }
 
 #[derive(Debug, Error)]
-#[error("A valid chunk contains only ASCII uppercase or lowercase letters")]
+#[error("A valid chunk type contains only ASCII uppercase or lowercase letters")]
 pub struct InvalidChunkError;
 
 impl ChunkType {
@@ -57,10 +57,7 @@ impl ChunkType {
 
             the chunk is valid if all of its bytes are ASCII uppercase or lowercase letters, and also if the reserved bit is valid
         */
-        self.bytes
-            .iter()
-            .all(|b| b.is_ascii_uppercase() || b.is_ascii_lowercase())
-            && self.is_reserved_bit_valid()
+        self.bytes.iter().all(|b| b.is_ascii_alphabetic()) && self.is_reserved_bit_valid()
     }
 
     fn test_fifth_bit_to_0(byte: u8) -> bool {
@@ -84,30 +81,19 @@ impl FromStr for ChunkType {
     type Err = InvalidChunkError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() != 4
-            || s.chars()
-                .any(|c| !c.is_ascii_lowercase() && !c.is_ascii_uppercase())
-        {
+        if s.len() != 4 || s.chars().any(|c| !c.is_ascii_alphabetic()) {
             return Err(InvalidChunkError);
         }
 
-        let mut bytes = [0u8; 4];
-
-        for (i, b) in s.bytes().enumerate() {
-            bytes[i] = b;
-        }
-
-        Ok(Self { bytes })
+        Ok(Self {
+            bytes: s.as_bytes().try_into().unwrap(),
+        })
     }
 }
 
 impl Display for ChunkType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        /*
-            ASCII values can be safely cast to UTF-8 chars
-        */
-        //write!(f, "{}{}{}{}", self.bytes[0] as char, self.bytes[1] as char, self.bytes[2] as char, self.bytes[3] as char)
-
+        // ASCII values can be safely cast to UTF-8 chars
         write!(f, "{}", str::from_utf8(&self.bytes).unwrap())
     }
 }
