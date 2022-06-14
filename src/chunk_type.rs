@@ -121,6 +121,11 @@ mod tests {
     }
 
     #[test]
+    pub fn test_chunk_type_from_invalid_bytes() {
+        assert!(ChunkType::try_from([0, 0, 0, 0]).is_err());
+    }
+
+    #[test]
     pub fn test_chunk_type_from_str() {
         let expected = ChunkType::try_from([82, 117, 83, 116]).unwrap();
         let actual = ChunkType::from_str("RuSt").unwrap();
