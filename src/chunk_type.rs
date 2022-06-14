@@ -218,6 +218,14 @@ mod tests {
     }
 
     #[test]
+    pub fn test_chunk_type_too_short_is_rejected() {
+        assert!(ChunkType::from_str("").is_err());
+        assert!(ChunkType::from_str("R").is_err());
+        assert!(ChunkType::from_str("Ru").is_err());
+        assert!(ChunkType::from_str("RuS").is_err());
+    }
+
+    #[test]
     pub fn test_chunk_type_too_long_is_rejected() {
         let result = ChunkType::from_str("abcdefg");
 
