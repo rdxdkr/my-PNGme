@@ -80,7 +80,7 @@ impl FromStr for ChunkType {
     type Err = InvalidChunkError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() > 4
+        if s.len() != 4
             || s.chars()
                 .any(|c| !c.is_ascii_lowercase() && !c.is_ascii_uppercase())
         {
