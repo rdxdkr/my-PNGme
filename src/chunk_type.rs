@@ -72,6 +72,10 @@ impl TryFrom<[u8; 4]> for ChunkType {
     type Error = InvalidChunkError;
 
     fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
+        if value.iter().any(|c| !c.is_ascii_alphabetic()) {
+            return Err(InvalidChunkError);
+        }
+
         Ok(Self { bytes: value })
     }
 }
