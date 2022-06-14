@@ -7,8 +7,12 @@ pub struct ChunkType {
 }
 
 #[derive(Debug, Error)]
-#[error("A valid chunk type contains only ASCII uppercase or lowercase letters")]
-pub struct InvalidChunkError;
+pub enum ChunkTypeError {
+    #[error("The bytes must be valid ASCII alphabetic characters, found {0:?}")]
+    NonAlphabeticCharacters(Vec<u8>),
+    #[error("The string must be 4 characters long, found {0}")]
+    InvalidStringLength(usize),
+}
 
 impl ChunkType {
     pub fn bytes(&self) -> [u8; 4] {
@@ -66,11 +70,11 @@ impl ChunkType {
 }
 
 impl TryFrom<[u8; 4]> for ChunkType {
-    type Error = InvalidChunkError;
+    type Error = ChunkTypeError;
 
     fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
         if value.iter().any(|c| !c.is_ascii_alphabetic()) {
-            return Err(InvalidChunkError);
+            return Err(ChunkTypeError::NonAlphabeticCharacters(value.to_vec()));
         }
 
         Ok(Self { bytes: value })
@@ -78,11 +82,17 @@ impl TryFrom<[u8; 4]> for ChunkType {
 }
 
 impl FromStr for ChunkType {
-    type Err = InvalidChunkError;
+    type Err = ChunkTypeError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() != 4 || s.chars().any(|c| !c.is_ascii_alphabetic()) {
-            return Err(InvalidChunkError);
+        if s.len() != 4 {
+            return Err(ChunkTypeError::InvalidStringLength(s.len()));
+        }
+
+        if s.chars().any(|c| !c.is_ascii_alphabetic()) {
+            return Err(ChunkTypeError::NonAlphabeticCharacters(
+                s.as_bytes().to_vec(),
+            ));
         }
 
         Ok(Self {
