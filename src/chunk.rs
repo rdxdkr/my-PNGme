@@ -19,6 +19,8 @@ pub struct Chunk {
 pub struct InvalidCrcError;
 
 impl Chunk {
+    const CRC: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
+
     pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Self {
         let crc = Self::calculate_crc(&chunk_type, &data);
 
@@ -65,34 +67,11 @@ impl Chunk {
     fn calculate_crc(chunk_type: &ChunkType, data: &[u8]) -> u32 {
         /*
             from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-layout
+            and https://reveng.sourceforge.io/crc-catalogue/all.htm
 
-            the crc is calculated on the bytes of the chunk type and data, and it needs to be 4 bytes long
-
-            I had to try out pretty much all of the 32 bit algorithms available in the crc crate,
-            until I found the one that works with the provided test
+            the crc is calculated on the bytes of the chunk type and data, and it needs to be 4 bytes long  
         */
-        let crc = Crc::<u32>::new(&CRC_32_ISO_HDLC);
-
-        // imperative way by manually iterating over the two sequences
-        /*let mut bytes = Vec::<u8>::new();
-
-        for b in self.chunk_type.bytes() {
-            bytes.push(b);
-        }
-
-        for b in &self.data {
-            bytes.push(*b);
-        }*/
-
-        // functional way by chaining the two iterators together and collecting them in a new Vec at the end
-        crc.checksum(
-            &chunk_type
-                .bytes()
-                .iter()
-                .cloned()
-                .chain(data.iter().cloned())
-                .collect::<Vec<u8>>(),
-        )
+        Self::CRC.checksum(&[&chunk_type.bytes()[..], data].concat())
     }
 }
 
