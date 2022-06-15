@@ -204,6 +204,13 @@ mod tests {
     }
 
     #[test]
+    fn test_chunk_from_bytes_invalid_length() {
+        assert!(Chunk::try_from(b"0".as_ref()).is_err());
+        assert!(Chunk::try_from(b"00".as_ref()).is_err());
+        assert!(Chunk::try_from(b"000".as_ref()).is_err());
+    }
+
+    #[test]
     fn test_chunk_from_bytes_invalid_crc() {
         let data_length: u32 = 42;
         let chunk_type = "RuSt".as_bytes();
