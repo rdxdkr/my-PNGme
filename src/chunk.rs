@@ -230,6 +230,22 @@ mod tests {
     }
 
     #[test]
+    fn test_chunk_from_bytes_invalid_chunk_data() {
+        let data_length: u32 = 100;
+        let chunk_type = "RuSt".as_bytes();
+        let message_bytes = b"Message shorter than length";
+        let chunk_data: Vec<u8> = data_length
+            .to_be_bytes()
+            .iter()
+            .chain(chunk_type.iter())
+            .chain(message_bytes.iter())
+            .copied()
+            .collect();
+
+        assert!(Chunk::try_from(chunk_data.as_ref()).is_err());
+    }
+
+    #[test]
     fn test_chunk_from_bytes_invalid_crc() {
         let data_length: u32 = 42;
         let chunk_type = "RuSt".as_bytes();
