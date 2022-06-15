@@ -101,33 +101,24 @@ impl TryFrom<&[u8]> for Chunk {
             - last 4 bytes: crc
         */
 
-        // the length and crc are encoded as big endian bytes, so they must be read like this
-        let length = u32::from_be_bytes(value[..4].try_into().unwrap());
-        let chunk_type = ChunkType::from_str(str::from_utf8(&value[4..8]).unwrap()).unwrap();
-        let data_end_index = 8 + length as usize;
+        let mut input_stream = BufReader::new(value);
+        let mut buffer_4_bytes = [0u8; 4];
 
-        /*
-            a slice can be immediately converted into a vector of the same type by calling to_vec()
-            on it, which is what I was doing before, but only after performing a useless and harmful
-            conversion of the slice into a string, which implied that all of the bytes would be
-            valid ASCII characters and in fact they are not
+        input_stream.read_exact(&mut buffer_4_bytes).unwrap();
 
-            that caused the Png::test_png_from_image_file test to fail in the first place, which
-            led to the senseless introduction of unsafe just to sweep the issue under the carpet
+        let length = u32::from_be_bytes(buffer_4_bytes);
 
-            only, the issue has come back to bite me again in the most painful of ways because real
-            PNG files always contain some bytes which are not valid ASCII characters
-        */
-        let chunk_data = value[8..data_end_index].to_vec();
+        input_stream.read_exact(&mut buffer_4_bytes).unwrap();
 
-        let input_crc = u32::from_be_bytes(
-            value[data_end_index..data_end_index + 4]
-                .try_into()
-                .unwrap(),
-        );
-        let crc = Self::calculate_crc(&chunk_type, &chunk_data);
+        let chunk_type = ChunkType::try_from(buffer_4_bytes).unwrap();
+        let mut chunk_data = vec![0u8; length as usize];
 
-        if crc != input_crc {
+        input_stream.read_exact(&mut chunk_data).unwrap();
+        input_stream.read_exact(&mut buffer_4_bytes).unwrap();
+
+        let input_crc = u32::from_be_bytes(buffer_4_bytes);
+
+        if input_crc != Self::calculate_crc(&chunk_type, &chunk_data) {
             return Err(ChunkError::InvalidChecksumError);
         }
 
@@ -135,7 +126,7 @@ impl TryFrom<&[u8]> for Chunk {
             length,
             chunk_type,
             chunk_data,
-            crc,
+            crc: input_crc,
         })
     }
 }
