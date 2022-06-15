@@ -118,7 +118,7 @@ impl TryFrom<&[u8]> for Chunk {
         let chunk_type = ChunkType::try_from(buffer_4_bytes)?;
         let mut chunk_data = vec![0u8; length as usize];
 
-        input_stream.read_exact(&mut chunk_data).unwrap();
+        input_stream.read_exact(&mut chunk_data)?;
         input_stream.read_exact(&mut buffer_4_bytes).unwrap();
 
         let input_crc = u32::from_be_bytes(buffer_4_bytes);
