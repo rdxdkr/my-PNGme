@@ -246,7 +246,7 @@ mod tests {
     }
 
     #[test]
-    fn test_chunk_from_bytes_invalid_crc() {
+    fn test_chunk_from_bytes_invalid_crc_value() {
         let data_length: u32 = 42;
         let chunk_type = "RuSt".as_bytes();
         let message_bytes = "This is where your secret message will be!".as_bytes();
