@@ -15,8 +15,10 @@ pub struct Chunk {
 }
 
 #[derive(Debug, Error)]
-#[error("A valid CRC must match the one that is calculated again upon creating a Chunk")]
-pub struct InvalidCrcError;
+pub enum ChunkError {
+    #[error("A valid checksum must match the one that is calculated again upon creating a Chunk")]
+    InvalidChecksumError,
+}
 
 impl Chunk {
     const CRC: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
@@ -69,7 +71,7 @@ impl Chunk {
             from http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#Chunk-layout
             and https://reveng.sourceforge.io/crc-catalogue/all.htm
 
-            the crc is calculated on the bytes of the chunk type and data, and it needs to be 4 bytes long  
+            the crc is calculated on the bytes of the chunk type and data, and it needs to be 4 bytes long
         */
         Self::CRC.checksum(&[&chunk_type.bytes()[..], data].concat())
     }
@@ -88,7 +90,7 @@ impl Display for Chunk {
 }
 
 impl TryFrom<&[u8]> for Chunk {
-    type Error = InvalidCrcError;
+    type Error = ChunkError;
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         /*
@@ -126,7 +128,7 @@ impl TryFrom<&[u8]> for Chunk {
         let crc = Self::calculate_crc(&chunk_type, &chunk_data);
 
         if crc != input_crc {
-            return Err(InvalidCrcError);
+            return Err(ChunkError::InvalidChecksumError);
         }
 
         Ok(Chunk {
