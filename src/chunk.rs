@@ -214,6 +214,20 @@ mod tests {
     }
 
     #[test]
+    fn test_chunk_from_bytes_invalid_chunk_type() {
+        let data_length: u32 = 42;
+        let chunk_type = b"0000";
+        let chunk_data: Vec<u8> = data_length
+            .to_be_bytes()
+            .iter()
+            .chain(chunk_type.iter())
+            .copied()
+            .collect();
+
+        assert!(Chunk::try_from(chunk_data.as_ref()).is_err());
+    }
+
+    #[test]
     fn test_chunk_from_bytes_invalid_crc() {
         let data_length: u32 = 42;
         let chunk_type = "RuSt".as_bytes();
