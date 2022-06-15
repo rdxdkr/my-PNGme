@@ -1,7 +1,7 @@
 use crate::{
     chunk::Chunk,
     chunk_type::ChunkType,
-    png::{ChunkNotFoundError, Png},
+    png::{Png, PngError},
 };
 use anyhow::{Error, Result};
 use clap::{Args, Parser, Subcommand};
@@ -171,7 +171,7 @@ impl DecodeArgs {
 
         match png.chunk_by_type(&self.chunk_type) {
             Some(data) => data.data_as_string(),
-            None => Err(Error::from(ChunkNotFoundError)),
+            None => Err(PngError::ChunkNotFoundError.into()),
         }
     }
 }
@@ -188,7 +188,7 @@ impl RemoveArgs {
             fs::write(&self.file_path, &png.as_bytes()[..]).unwrap();
         }
 
-        removed_chunk.map_err(|e| Error::from(Box::new(e)))
+        removed_chunk
     }
 }
 

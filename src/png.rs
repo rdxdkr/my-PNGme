@@ -1,4 +1,5 @@
 use crate::chunk::Chunk;
+use anyhow::Result;
 use std::fmt::Display;
 use thiserror::Error;
 
@@ -7,15 +8,15 @@ pub struct Png {
 }
 
 #[derive(Debug, Error)]
-#[error(
-    "A valid PNG header must match the following sequence of bytes: {:?}",
-    Png::STANDARD_HEADER
-)]
-pub struct InvalidHeaderError;
-
-#[derive(Debug, Error)]
-#[error("The provided chunk is not part of this PNG file")]
-pub struct ChunkNotFoundError;
+pub enum PngError {
+    #[error(
+        "A valid PNG header must match the following sequence of bytes: {:?}",
+        Png::STANDARD_HEADER
+    )]
+    InvalidHeaderError,
+    #[error("The provided chunk is not part of this PNG file")]
+    ChunkNotFoundError,
+}
 
 impl Png {
     const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
@@ -33,29 +34,25 @@ impl Png {
     }
 
     pub fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
-        for chunk in &self.chunks {
-            if chunk.chunk_type().to_string() == chunk_type {
-                return Some(chunk);
-            }
-        }
-
-        None
+        self.chunks
+            .iter()
+            .find(|c| c.chunk_type().to_string() == chunk_type)
     }
 
     pub fn append_chunk(&mut self, chunk: Chunk) {
         self.chunks.push(chunk);
     }
 
-    pub fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk, ChunkNotFoundError> {
-        if let Some(index) = self
+    pub fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
+        // using rposition because chunks are appended at the end
+        match self
             .chunks
             .iter()
-            .position(|c| c.chunk_type().to_string() == chunk_type)
+            .rposition(|c| c.chunk_type().to_string() == chunk_type)
         {
-            return Ok(self.chunks.remove(index));
+            Some(index) => Ok(self.chunks.remove(index)),
+            None => Err(PngError::ChunkNotFoundError.into()),
         }
-
-        Err(ChunkNotFoundError)
     }
 
     pub fn as_bytes(&self) -> Vec<u8> {
@@ -73,18 +70,18 @@ impl Png {
 }
 
 impl TryFrom<&[u8]> for Png {
-    type Error = InvalidHeaderError;
+    type Error = PngError;
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         if value.len() < 8 {
-            return Err(InvalidHeaderError);
+            return Err(PngError::InvalidHeaderError);
         }
 
         let mut chunks: Vec<Chunk> = vec![];
         let header = &value[..8];
 
         if header != Self::STANDARD_HEADER {
-            return Err(InvalidHeaderError);
+            return Err(PngError::InvalidHeaderError);
         }
 
         let mut cursor = 8usize;
