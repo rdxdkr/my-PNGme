@@ -18,6 +18,8 @@ pub struct Chunk {
 pub enum ChunkError {
     #[error("A valid checksum must match the one that is calculated again upon creating a Chunk")]
     InvalidChecksumError,
+    #[error("IO Error converting from bytes: {0}")]
+    MalformedChunk(#[from] io::Error),
 }
 
 impl Chunk {
@@ -104,7 +106,7 @@ impl TryFrom<&[u8]> for Chunk {
         let mut input_stream = BufReader::new(value);
         let mut buffer_4_bytes = [0u8; 4];
 
-        input_stream.read_exact(&mut buffer_4_bytes).unwrap();
+        input_stream.read_exact(&mut buffer_4_bytes)?;
 
         let length = u32::from_be_bytes(buffer_4_bytes);
 
