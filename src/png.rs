@@ -1,4 +1,4 @@
-use crate::chunk::Chunk;
+use crate::chunk::{Chunk, ChunkError};
 use anyhow::Result;
 use std::fmt::Display;
 use thiserror::Error;
@@ -16,6 +16,8 @@ pub enum PngError {
     InvalidHeaderError,
     #[error("The provided chunk is not part of this PNG file")]
     ChunkNotFoundError,
+    #[error("{0}")]
+    MalformedChunk(#[from] ChunkError),
 }
 
 impl Png {
@@ -87,7 +89,7 @@ impl TryFrom<&[u8]> for Png {
         let mut cursor = 8usize;
 
         while cursor < value.len() {
-            let chunk = Chunk::try_from(&value[cursor..]).unwrap();
+            let chunk = Chunk::try_from(&value[cursor..])?;
 
             cursor += 4 + 4 + chunk.length() as usize + 4;
             chunks.push(chunk);
