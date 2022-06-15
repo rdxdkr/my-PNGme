@@ -3,7 +3,8 @@ use anyhow::Result;
 use crc::{Crc, CRC_32_ISO_HDLC};
 use std::{
     fmt::Display,
-    str::{self, FromStr},
+    io::{self, BufReader, Read},
+    str,
 };
 use thiserror::Error;
 
