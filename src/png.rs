@@ -163,7 +163,7 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_chunk() {
+    fn test_png_invalid_chunk() {
         let mut chunk_bytes: Vec<u8> = testing_chunks()
             .into_iter()
             .flat_map(|chunk| chunk.as_bytes())
@@ -179,7 +179,12 @@ mod tests {
 
         chunk_bytes.append(&mut bad_chunk);
 
-        let png = Png::try_from(chunk_bytes.as_ref());
+        let bytes: Vec<u8> = Png::STANDARD_HEADER
+            .iter()
+            .chain(chunk_bytes.iter())
+            .copied()
+            .collect();
+        let png = Png::try_from(bytes.as_ref());
 
         assert!(png.is_err());
     }
