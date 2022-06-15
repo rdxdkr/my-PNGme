@@ -185,6 +185,25 @@ mod tests {
     }
 
     #[test]
+    fn test_chunk_data_as_string_invalid() {
+        let data_length: u32 = 1;
+        let chunk_type = "RuSt".as_bytes();
+        let message_bytes = vec![0x81];
+        let crc: u32 = 1728488629;
+        let chunk_data: Vec<u8> = data_length
+            .to_be_bytes()
+            .iter()
+            .chain(chunk_type.iter())
+            .chain(message_bytes.iter())
+            .chain(crc.to_be_bytes().iter())
+            .copied()
+            .collect();
+        let chunk = Chunk::try_from(chunk_data.as_ref()).unwrap();
+
+        assert!(chunk.data_as_string().is_err());
+    }
+
+    #[test]
     fn test_valid_chunk_from_bytes() {
         let data_length: u32 = 42;
         let chunk_type = "RuSt".as_bytes();
