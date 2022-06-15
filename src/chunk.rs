@@ -1,4 +1,4 @@
-use crate::chunk_type::ChunkType;
+use crate::chunk_type::{ChunkType, ChunkTypeError};
 use anyhow::Result;
 use crc::{Crc, CRC_32_ISO_HDLC};
 use std::{
@@ -21,6 +21,8 @@ pub enum ChunkError {
     InvalidChecksumError,
     #[error("IO Error converting from bytes: {0}")]
     MalformedChunk(#[from] io::Error),
+    #[error("Invalid ChunkType: {0}")]
+    InvalidChunkType(#[from] ChunkTypeError),
 }
 
 impl Chunk {
@@ -113,7 +115,7 @@ impl TryFrom<&[u8]> for Chunk {
 
         input_stream.read_exact(&mut buffer_4_bytes).unwrap();
 
-        let chunk_type = ChunkType::try_from(buffer_4_bytes).unwrap();
+        let chunk_type = ChunkType::try_from(buffer_4_bytes)?;
         let mut chunk_data = vec![0u8; length as usize];
 
         input_stream.read_exact(&mut chunk_data).unwrap();
