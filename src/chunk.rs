@@ -4,7 +4,6 @@ use crc::{Crc, CRC_32_ISO_HDLC};
 use std::{
     fmt::Display,
     io::{self, BufReader, Read},
-    str,
 };
 use thiserror::Error;
 
@@ -56,7 +55,7 @@ impl Chunk {
     }
 
     pub fn data_as_string(&self) -> Result<String> {
-        Ok(str::from_utf8(&self.chunk_data).unwrap().to_string())
+        String::from_utf8(self.chunk_data.clone()).map_err(|e| e.into())
     }
 
     pub fn as_bytes(&self) -> Vec<u8> {
