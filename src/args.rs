@@ -143,11 +143,11 @@ impl EncodeArgs {
                 let mut png = Png::try_from(&input_buffer[..])?;
 
                 png.append_chunk(chunk);
-                Ok(png.as_bytes().to_vec())
+                Ok(png.as_bytes())
             }
             (FileState::Empty, FileState::Empty) => {
                 // empty input, empty output
-                Ok(Png::from_chunks(vec![chunk]).as_bytes().to_vec())
+                Ok(Png::from_chunks(vec![chunk]).as_bytes())
             }
             (FileState::Png, FileState::Png) => todo!(), // valid input, valid output
             (FileState::Empty, FileState::Png) => todo!(), // empty input, valid output
@@ -157,8 +157,8 @@ impl EncodeArgs {
 
     fn validate_input(input_buffer: &Vec<u8>, chunk: Chunk) -> Result<Vec<u8>> {
         match Self::validate_png(input_buffer) {
-            FileState::Png => Ok(chunk.as_bytes().to_vec()), // valid input
-            FileState::Empty => Ok(Png::from_chunks(vec![chunk]).as_bytes().to_vec()), // empty input
+            FileState::Png => Ok(chunk.as_bytes()), // valid input
+            FileState::Empty => Ok(Png::from_chunks(vec![chunk]).as_bytes()), // empty input
             FileState::Other(e) => Err(e), // invalid input
         }
     }
